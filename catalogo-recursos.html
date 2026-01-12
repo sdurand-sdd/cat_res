@@ -1,0 +1,1150 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catálogo de Recursos Pedagógicos</title>
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@300;400;600&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --color-bg: #faf8f5;
+            --color-surface: #ffffff;
+            --color-primary: #8b5e3c;
+            --color-primary-light: #b08968;
+            --color-accent: #cb997e;
+            --color-text: #3a3027;
+            --color-text-light: #6b5d52;
+            --color-border: #e8dfd7;
+            --color-success: #7d9d7c;
+            --color-warning: #d4a373;
+            --shadow-sm: 0 1px 3px rgba(139, 94, 60, 0.08);
+            --shadow-md: 0 4px 12px rgba(139, 94, 60, 0.12);
+            --shadow-lg: 0 8px 24px rgba(139, 94, 60, 0.15);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background-color: var(--color-bg);
+            color: var(--color-text);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .login-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 2rem;
+            background: linear-gradient(135deg, var(--color-bg) 0%, #f0ebe5 100%);
+        }
+
+        .login-box {
+            background: var(--color-surface);
+            padding: 3rem;
+            border-radius: 16px;
+            box-shadow: var(--shadow-lg);
+            width: 100%;
+            max-width: 420px;
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .login-box h1 {
+            font-family: 'Crimson Pro', serif;
+            font-size: 2.5rem;
+            color: var(--color-primary);
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        .login-box p {
+            color: var(--color-text-light);
+            margin-bottom: 2rem;
+            font-size: 0.95rem;
+        }
+
+        .app-container {
+            display: none;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .app-container.active {
+            display: block;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        header {
+            background: var(--color-surface);
+            padding: 2rem;
+            border-radius: 16px;
+            box-shadow: var(--shadow-md);
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        header h1 {
+            font-family: 'Crimson Pro', serif;
+            font-size: 2.5rem;
+            color: var(--color-primary);
+            font-weight: 600;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .input-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--color-text);
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 2px solid var(--color-border);
+            border-radius: 8px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            background: var(--color-surface);
+            color: var(--color-text);
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 3px rgba(139, 94, 60, 0.1);
+        }
+
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: var(--color-primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--color-primary-light);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-secondary {
+            background: var(--color-accent);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: var(--color-primary-light);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--color-primary);
+            color: var(--color-primary);
+        }
+
+        .btn-outline:hover {
+            background: var(--color-primary);
+            color: white;
+        }
+
+        .btn-danger {
+            background: #c97064;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #b05a4f;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 2rem;
+        }
+
+        .form-section, .resources-section {
+            background: var(--color-surface);
+            padding: 2rem;
+            border-radius: 16px;
+            box-shadow: var(--shadow-md);
+        }
+
+        .section-title {
+            font-family: 'Crimson Pro', serif;
+            font-size: 1.8rem;
+            color: var(--color-primary);
+            margin-bottom: 1.5rem;
+            font-weight: 600;
+        }
+
+        .conditional-fields {
+            display: none;
+            animation: fadeInDown 0.3s ease-out;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 2px dashed var(--color-border);
+        }
+
+        .conditional-fields.active {
+            display: block;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .search-filter {
+            margin-bottom: 2rem;
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .search-filter input {
+            flex: 1;
+            min-width: 250px;
+        }
+
+        .resource-card {
+            background: var(--color-bg);
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 1rem;
+            border-left: 4px solid var(--color-accent);
+            transition: all 0.3s ease;
+        }
+
+        .resource-card:hover {
+            transform: translateX(4px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .resource-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 1rem;
+        }
+
+        .resource-title {
+            font-family: 'Crimson Pro', serif;
+            font-size: 1.3rem;
+            color: var(--color-primary);
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .resource-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .meta-tag {
+            padding: 0.25rem 0.75rem;
+            background: var(--color-surface);
+            border-radius: 6px;
+            font-size: 0.85rem;
+            color: var(--color-text-light);
+            border: 1px solid var(--color-border);
+        }
+
+        .resource-details {
+            color: var(--color-text-light);
+            font-size: 0.9rem;
+            line-height: 1.8;
+        }
+
+        .resource-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .resource-actions .btn {
+            padding: 0.5rem 1rem;
+            font-size: 0.85rem;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--color-text-light);
+        }
+
+        .empty-state-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.3;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
+            padding: 1.5rem;
+            border-radius: 12px;
+            color: white;
+            box-shadow: var(--shadow-md);
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            font-family: 'Crimson Pro', serif;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            margin-top: 0.25rem;
+        }
+
+        .checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-top: 0.5rem;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            width: auto;
+            cursor: pointer;
+        }
+
+        @media (max-width: 968px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+
+            .search-filter {
+                flex-direction: column;
+            }
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(58, 48, 39, 0.7);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--color-surface);
+            padding: 2rem;
+            border-radius: 16px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow-lg);
+            animation: slideUp 0.3s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-title {
+            font-family: 'Crimson Pro', serif;
+            font-size: 1.8rem;
+            color: var(--color-primary);
+            font-weight: 600;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--color-text-light);
+            padding: 0.5rem;
+            line-height: 1;
+        }
+
+        .close-modal:hover {
+            color: var(--color-primary);
+        }
+
+        .export-options {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Screen -->
+    <div id="loginContainer" class="login-container">
+        <div class="login-box">
+            <h1>Catálogo</h1>
+            <p>Accédez à votre catalogue de ressources pédagogiques</p>
+            <form id="loginForm">
+                <div class="input-group">
+                    <label for="loginEmail">Email</label>
+                    <input type="email" id="loginEmail" required placeholder="votre@email.com">
+                </div>
+                <div class="input-group">
+                    <label for="loginPassword">Mot de passe</label>
+                    <input type="password" id="loginPassword" required placeholder="••••••••">
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Se connecter</button>
+            </form>
+            <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--color-border);">
+                <p style="font-size: 0.85rem; color: var(--color-text-light); margin-bottom: 0.5rem;">Première connexion ?</p>
+                <button id="showRegister" class="btn btn-outline" style="width: 100%;">Créer un compte</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main App -->
+    <div id="appContainer" class="app-container">
+        <header>
+            <h1>Catálogo de Recursos</h1>
+            <div class="header-actions">
+                <button id="exportBtn" class="btn btn-secondary">📊 Exporter</button>
+                <button id="logoutBtn" class="btn btn-outline">Déconnexion</button>
+            </div>
+        </header>
+
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-number" id="totalResources">0</div>
+                <div class="stat-label">Ressources totales</div>
+            </div>
+            <div class="stat-card" style="background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-primary-light) 100%);">
+                <div class="stat-number" id="totalBooks">0</div>
+                <div class="stat-label">Livres</div>
+            </div>
+            <div class="stat-card" style="background: linear-gradient(135deg, var(--color-success) 0%, #95b594 100%);">
+                <div class="stat-number" id="totalCDs">0</div>
+                <div class="stat-label">CDs Audio</div>
+            </div>
+            <div class="stat-card" style="background: linear-gradient(135deg, var(--color-warning) 0%, #e4b98a 100%);">
+                <div class="stat-number" id="totalOnline">0</div>
+                <div class="stat-label">En ligne</div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="form-section">
+                <h2 class="section-title">Ajouter une ressource</h2>
+                <form id="resourceForm">
+                    <div class="input-group">
+                        <label for="support">Support *</label>
+                        <select id="support" required>
+                            <option value="">Choisir un support...</option>
+                            <option value="livre">Livre</option>
+                            <option value="cd">CD Audio</option>
+                            <option value="ordinateur">Ordinateur</option>
+                            <option value="en_ligne">En ligne</option>
+                            <option value="autre">Autre</option>
+                        </select>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="titre">Titre du document *</label>
+                        <input type="text" id="titre" required placeholder="Ex: El Quijote - Capítulo 1">
+                    </div>
+
+                    <div class="input-group">
+                        <label for="nature">Nature du document</label>
+                        <select id="nature">
+                            <option value="">Choisir...</option>
+                            <option value="texte">Texte</option>
+                            <option value="audio">Audio</option>
+                            <option value="video">Vidéo</option>
+                            <option value="image">Image/Peinture</option>
+                            <option value="exercice">Exercice</option>
+                            <option value="evaluation">Évaluation</option>
+                            <option value="autre">Autre</option>
+                        </select>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="auteur">Auteur</label>
+                        <input type="text" id="auteur" placeholder="Nom de l'auteur">
+                    </div>
+
+                    <div class="input-group">
+                        <label for="date_publication">Date de publication/création</label>
+                        <input type="text" id="date_publication" placeholder="Ex: 2020, Mars 2019, etc.">
+                    </div>
+
+                    <div class="input-group">
+                        <label>Niveaux de classe</label>
+                        <div class="checkbox-group">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="niveau_6eme" value="6ème">
+                                <label for="niveau_6eme" style="margin: 0;">6ème</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="niveau_5eme" value="5ème">
+                                <label for="niveau_5eme" style="margin: 0;">5ème</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="niveau_4eme" value="4ème">
+                                <label for="niveau_4eme" style="margin: 0;">4ème</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="niveau_3eme" value="3ème">
+                                <label for="niveau_3eme" style="margin: 0;">3ème</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="niveau_seconde" value="Seconde">
+                                <label for="niveau_seconde" style="margin: 0;">Seconde</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="niveau_premiere" value="Première">
+                                <label for="niveau_premiere" style="margin: 0;">Première</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="niveau_terminale" value="Terminale">
+                                <label for="niveau_terminale" style="margin: 0;">Terminale</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Champs conditionnels pour Livre -->
+                    <div id="livreFields" class="conditional-fields">
+                        <div class="input-group">
+                            <label for="titre_livre">Titre du livre</label>
+                            <input type="text" id="titre_livre" placeholder="Ex: Así se dice 4ème">
+                        </div>
+                        <div class="input-group">
+                            <label for="editeur_livre">Éditeur</label>
+                            <input type="text" id="editeur_livre" placeholder="Ex: Hachette">
+                        </div>
+                        <div class="input-group">
+                            <label for="annee_livre">Année de publication</label>
+                            <input type="text" id="annee_livre" placeholder="Ex: 2020">
+                        </div>
+                        <div class="input-group">
+                            <label for="page_livre">Page</label>
+                            <input type="text" id="page_livre" placeholder="Ex: p. 45 ou pp. 45-48">
+                        </div>
+                        <div class="input-group">
+                            <label for="lien_livre">Lien UNC / Drive</label>
+                            <input type="text" id="lien_livre" placeholder="Ex: \\serveur\dossier ou lien Google Drive">
+                        </div>
+                    </div>
+
+                    <!-- Champs conditionnels pour CD -->
+                    <div id="cdFields" class="conditional-fields">
+                        <div class="input-group">
+                            <label for="titre_cd">Titre du CD</label>
+                            <input type="text" id="titre_cd" placeholder="Ex: Así se dice 4ème - Audio">
+                        </div>
+                        <div class="input-group">
+                            <label for="editeur_cd">Éditeur</label>
+                            <input type="text" id="editeur_cd" placeholder="Ex: Hachette">
+                        </div>
+                        <div class="input-group">
+                            <label for="piste_cd">Piste</label>
+                            <input type="text" id="piste_cd" placeholder="Ex: Piste 12">
+                        </div>
+                        <div class="input-group">
+                            <label for="lien_cd">Lien UNC / Drive</label>
+                            <input type="text" id="lien_cd" placeholder="Ex: \\serveur\audio ou lien Google Drive">
+                        </div>
+                    </div>
+
+                    <!-- Champs conditionnels pour En ligne -->
+                    <div id="enLigneFields" class="conditional-fields">
+                        <div class="input-group">
+                            <label for="url_en_ligne">URL du document</label>
+                            <input type="url" id="url_en_ligne" placeholder="https://...">
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="commentaires">Commentaires / Mots-clés</label>
+                        <textarea id="commentaires" placeholder="Ex: civilisation, Don Quichotte, Espagne médiévale, compréhension écrite..."></textarea>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" style="width: 100%;">
+                        <span id="submitBtnText">➕ Ajouter la ressource</span>
+                    </button>
+                    <button type="button" id="cancelEdit" class="btn btn-outline" style="width: 100%; margin-top: 0.5rem; display: none;">
+                        Annuler la modification
+                    </button>
+                </form>
+            </div>
+
+            <div class="resources-section">
+                <h2 class="section-title">Mes ressources</h2>
+                
+                <div class="search-filter">
+                    <input type="text" id="searchInput" placeholder="🔍 Rechercher (titre, auteur, mots-clés...)">
+                    <select id="filterSupport">
+                        <option value="">Tous les supports</option>
+                        <option value="livre">Livres</option>
+                        <option value="cd">CDs Audio</option>
+                        <option value="ordinateur">Ordinateur</option>
+                        <option value="en_ligne">En ligne</option>
+                        <option value="autre">Autre</option>
+                    </select>
+                    <select id="filterNiveau">
+                        <option value="">Tous les niveaux</option>
+                        <option value="6ème">6ème</option>
+                        <option value="5ème">5ème</option>
+                        <option value="4ème">4ème</option>
+                        <option value="3ème">3ème</option>
+                        <option value="Seconde">Seconde</option>
+                        <option value="Première">Première</option>
+                        <option value="Terminale">Terminale</option>
+                    </select>
+                </div>
+
+                <div id="resourcesList">
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📚</div>
+                        <p>Aucune ressource pour le moment</p>
+                        <p style="font-size: 0.85rem;">Commencez par ajouter votre première ressource !</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Export -->
+    <div id="exportModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Exporter les données</h3>
+                <button class="close-modal" onclick="closeExportModal()">×</button>
+            </div>
+            <p style="color: var(--color-text-light); margin-bottom: 1.5rem;">
+                Exportez vos ressources au format CSV pour les sauvegarder ou les utiliser dans d'autres applications.
+            </p>
+            <div class="export-options">
+                <button onclick="exportToCSV()" class="btn btn-primary">📥 Télécharger CSV</button>
+                <button onclick="closeExportModal()" class="btn btn-outline">Annuler</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+    <script>
+        // ===== CONFIGURATION FIREBASE =====
+        // IMPORTANT: Remplacez ces valeurs par votre propre configuration Firebase
+        const firebaseConfig = {
+            apiKey: "VOTRE_API_KEY",
+            authDomain: "VOTRE_PROJECT_ID.firebaseapp.com",
+            projectId: "VOTRE_PROJECT_ID",
+            storageBucket: "VOTRE_PROJECT_ID.appspot.com",
+            messagingSenderId: "VOTRE_SENDER_ID",
+            appId: "VOTRE_APP_ID"
+        };
+
+        // Initialiser Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        let currentUser = null;
+        let resources = [];
+        let editingResourceId = null;
+
+        // ===== AUTHENTIFICATION =====
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+
+            try {
+                await auth.signInWithEmailAndPassword(email, password);
+            } catch (error) {
+                alert('Erreur de connexion: ' + error.message);
+            }
+        });
+
+        document.getElementById('showRegister').addEventListener('click', async () => {
+            const email = prompt('Entrez votre email:');
+            const password = prompt('Entrez votre mot de passe (min. 6 caractères):');
+            
+            if (email && password) {
+                try {
+                    await auth.createUserWithEmailAndPassword(email, password);
+                    alert('Compte créé avec succès !');
+                } catch (error) {
+                    alert('Erreur: ' + error.message);
+                }
+            }
+        });
+
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            auth.signOut();
+        });
+
+        // Observer l'état d'authentification
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                currentUser = user;
+                document.getElementById('loginContainer').style.display = 'none';
+                document.getElementById('appContainer').classList.add('active');
+                loadResources();
+            } else {
+                currentUser = null;
+                document.getElementById('loginContainer').style.display = 'flex';
+                document.getElementById('appContainer').classList.remove('active');
+            }
+        });
+
+        // ===== GESTION DES CHAMPS CONDITIONNELS =====
+        document.getElementById('support').addEventListener('change', function() {
+            // Cacher tous les champs conditionnels
+            document.querySelectorAll('.conditional-fields').forEach(field => {
+                field.classList.remove('active');
+            });
+
+            // Afficher les champs appropriés
+            const support = this.value;
+            if (support === 'livre') {
+                document.getElementById('livreFields').classList.add('active');
+            } else if (support === 'cd') {
+                document.getElementById('cdFields').classList.add('active');
+            } else if (support === 'en_ligne') {
+                document.getElementById('enLigneFields').classList.add('active');
+            }
+        });
+
+        // ===== FORMULAIRE DE RESSOURCE =====
+        document.getElementById('resourceForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            // Collecter les niveaux sélectionnés
+            const niveaux = [];
+            document.querySelectorAll('input[type="checkbox"]:checked').forEach(checkbox => {
+                niveaux.push(checkbox.value);
+            });
+
+            const resourceData = {
+                support: document.getElementById('support').value,
+                titre: document.getElementById('titre').value,
+                nature: document.getElementById('nature').value,
+                auteur: document.getElementById('auteur').value,
+                date_publication: document.getElementById('date_publication').value,
+                niveaux: niveaux,
+                commentaires: document.getElementById('commentaires').value,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            };
+
+            // Ajouter les champs spécifiques selon le support
+            const support = document.getElementById('support').value;
+            if (support === 'livre') {
+                resourceData.livre = {
+                    titre: document.getElementById('titre_livre').value,
+                    editeur: document.getElementById('editeur_livre').value,
+                    annee: document.getElementById('annee_livre').value,
+                    page: document.getElementById('page_livre').value,
+                    lien: document.getElementById('lien_livre').value
+                };
+            } else if (support === 'cd') {
+                resourceData.cd = {
+                    titre: document.getElementById('titre_cd').value,
+                    editeur: document.getElementById('editeur_cd').value,
+                    piste: document.getElementById('piste_cd').value,
+                    lien: document.getElementById('lien_cd').value
+                };
+            } else if (support === 'en_ligne') {
+                resourceData.url = document.getElementById('url_en_ligne').value;
+            }
+
+            try {
+                if (editingResourceId) {
+                    // Modification
+                    await db.collection('resources').doc(editingResourceId).update(resourceData);
+                    editingResourceId = null;
+                    document.getElementById('submitBtnText').textContent = '➕ Ajouter la ressource';
+                    document.getElementById('cancelEdit').style.display = 'none';
+                } else {
+                    // Ajout
+                    resourceData.userId = currentUser.uid;
+                    await db.collection('resources').add(resourceData);
+                }
+                
+                document.getElementById('resourceForm').reset();
+                document.querySelectorAll('.conditional-fields').forEach(field => {
+                    field.classList.remove('active');
+                });
+                
+                loadResources();
+            } catch (error) {
+                alert('Erreur: ' + error.message);
+            }
+        });
+
+        document.getElementById('cancelEdit').addEventListener('click', () => {
+            editingResourceId = null;
+            document.getElementById('resourceForm').reset();
+            document.getElementById('submitBtnText').textContent = '➕ Ajouter la ressource';
+            document.getElementById('cancelEdit').style.display = 'none';
+            document.querySelectorAll('.conditional-fields').forEach(field => {
+                field.classList.remove('active');
+            });
+        });
+
+        // ===== CHARGEMENT DES RESSOURCES =====
+        async function loadResources() {
+            if (!currentUser) return;
+
+            try {
+                const snapshot = await db.collection('resources')
+                    .where('userId', '==', currentUser.uid)
+                    .orderBy('timestamp', 'desc')
+                    .get();
+
+                resources = snapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+
+                displayResources(resources);
+                updateStats();
+            } catch (error) {
+                console.error('Erreur de chargement:', error);
+            }
+        }
+
+        // ===== AFFICHAGE DES RESSOURCES =====
+        function displayResources(resourcesToDisplay) {
+            const container = document.getElementById('resourcesList');
+            
+            if (resourcesToDisplay.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📚</div>
+                        <p>Aucune ressource trouvée</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = resourcesToDisplay.map(resource => {
+                let detailsHTML = '';
+                
+                if (resource.support === 'livre' && resource.livre) {
+                    detailsHTML = `
+                        <p><strong>Livre:</strong> ${resource.livre.titre || 'Non spécifié'}</p>
+                        ${resource.livre.editeur ? `<p><strong>Éditeur:</strong> ${resource.livre.editeur}</p>` : ''}
+                        ${resource.livre.annee ? `<p><strong>Année:</strong> ${resource.livre.annee}</p>` : ''}
+                        ${resource.livre.page ? `<p><strong>Page:</strong> ${resource.livre.page}</p>` : ''}
+                        ${resource.livre.lien ? `<p><strong>Lien:</strong> <a href="${resource.livre.lien}" target="_blank" style="color: var(--color-primary);">${resource.livre.lien}</a></p>` : ''}
+                    `;
+                } else if (resource.support === 'cd' && resource.cd) {
+                    detailsHTML = `
+                        <p><strong>CD:</strong> ${resource.cd.titre || 'Non spécifié'}</p>
+                        ${resource.cd.editeur ? `<p><strong>Éditeur:</strong> ${resource.cd.editeur}</p>` : ''}
+                        ${resource.cd.piste ? `<p><strong>Piste:</strong> ${resource.cd.piste}</p>` : ''}
+                        ${resource.cd.lien ? `<p><strong>Lien:</strong> <a href="${resource.cd.lien}" target="_blank" style="color: var(--color-primary);">${resource.cd.lien}</a></p>` : ''}
+                    `;
+                } else if (resource.support === 'en_ligne' && resource.url) {
+                    detailsHTML = `
+                        <p><strong>URL:</strong> <a href="${resource.url}" target="_blank" style="color: var(--color-primary);">${resource.url}</a></p>
+                    `;
+                }
+
+                return `
+                    <div class="resource-card">
+                        <div class="resource-header">
+                            <div>
+                                <div class="resource-title">${resource.titre}</div>
+                                ${resource.auteur ? `<div style="color: var(--color-text-light); font-size: 0.9rem;">par ${resource.auteur}</div>` : ''}
+                            </div>
+                        </div>
+                        <div class="resource-meta">
+                            <span class="meta-tag">📁 ${getSupportLabel(resource.support)}</span>
+                            ${resource.nature ? `<span class="meta-tag">📄 ${getNatureLabel(resource.nature)}</span>` : ''}
+                            ${resource.date_publication ? `<span class="meta-tag">📅 ${resource.date_publication}</span>` : ''}
+                            ${resource.niveaux && resource.niveaux.length > 0 ? `<span class="meta-tag">🎓 ${resource.niveaux.join(', ')}</span>` : ''}
+                        </div>
+                        <div class="resource-details">
+                            ${detailsHTML}
+                            ${resource.commentaires ? `<p><strong>Commentaires:</strong> ${resource.commentaires}</p>` : ''}
+                        </div>
+                        <div class="resource-actions">
+                            <button class="btn btn-secondary" onclick="editResource('${resource.id}')">✏️ Modifier</button>
+                            <button class="btn btn-danger" onclick="deleteResource('${resource.id}')">🗑️ Supprimer</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // ===== MODIFICATION ET SUPPRESSION =====
+        async function editResource(id) {
+            const resource = resources.find(r => r.id === id);
+            if (!resource) return;
+
+            editingResourceId = id;
+
+            // Remplir le formulaire
+            document.getElementById('support').value = resource.support;
+            document.getElementById('titre').value = resource.titre;
+            document.getElementById('nature').value = resource.nature || '';
+            document.getElementById('auteur').value = resource.auteur || '';
+            document.getElementById('date_publication').value = resource.date_publication || '';
+            document.getElementById('commentaires').value = resource.commentaires || '';
+
+            // Cocher les niveaux
+            document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+            if (resource.niveaux) {
+                resource.niveaux.forEach(niveau => {
+                    const checkbox = document.querySelector(`input[value="${niveau}"]`);
+                    if (checkbox) checkbox.checked = true;
+                });
+            }
+
+            // Afficher les champs conditionnels et remplir
+            document.getElementById('support').dispatchEvent(new Event('change'));
+
+            if (resource.support === 'livre' && resource.livre) {
+                document.getElementById('titre_livre').value = resource.livre.titre || '';
+                document.getElementById('editeur_livre').value = resource.livre.editeur || '';
+                document.getElementById('annee_livre').value = resource.livre.annee || '';
+                document.getElementById('page_livre').value = resource.livre.page || '';
+                document.getElementById('lien_livre').value = resource.livre.lien || '';
+            } else if (resource.support === 'cd' && resource.cd) {
+                document.getElementById('titre_cd').value = resource.cd.titre || '';
+                document.getElementById('editeur_cd').value = resource.cd.editeur || '';
+                document.getElementById('piste_cd').value = resource.cd.piste || '';
+                document.getElementById('lien_cd').value = resource.cd.lien || '';
+            } else if (resource.support === 'en_ligne') {
+                document.getElementById('url_en_ligne').value = resource.url || '';
+            }
+
+            document.getElementById('submitBtnText').textContent = '💾 Enregistrer les modifications';
+            document.getElementById('cancelEdit').style.display = 'block';
+
+            // Scroll vers le formulaire
+            document.querySelector('.form-section').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        async function deleteResource(id) {
+            if (!confirm('Êtes-vous sûr de vouloir supprimer cette ressource ?')) return;
+
+            try {
+                await db.collection('resources').doc(id).delete();
+                loadResources();
+            } catch (error) {
+                alert('Erreur de suppression: ' + error.message);
+            }
+        }
+
+        // ===== RECHERCHE ET FILTRES =====
+        document.getElementById('searchInput').addEventListener('input', filterResources);
+        document.getElementById('filterSupport').addEventListener('change', filterResources);
+        document.getElementById('filterNiveau').addEventListener('change', filterResources);
+
+        function filterResources() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const supportFilter = document.getElementById('filterSupport').value;
+            const niveauFilter = document.getElementById('filterNiveau').value;
+
+            const filtered = resources.filter(resource => {
+                const matchesSearch = !searchTerm || 
+                    resource.titre.toLowerCase().includes(searchTerm) ||
+                    (resource.auteur && resource.auteur.toLowerCase().includes(searchTerm)) ||
+                    (resource.commentaires && resource.commentaires.toLowerCase().includes(searchTerm));
+
+                const matchesSupport = !supportFilter || resource.support === supportFilter;
+                const matchesNiveau = !niveauFilter || (resource.niveaux && resource.niveaux.includes(niveauFilter));
+
+                return matchesSearch && matchesSupport && matchesNiveau;
+            });
+
+            displayResources(filtered);
+        }
+
+        // ===== STATISTIQUES =====
+        function updateStats() {
+            document.getElementById('totalResources').textContent = resources.length;
+            document.getElementById('totalBooks').textContent = resources.filter(r => r.support === 'livre').length;
+            document.getElementById('totalCDs').textContent = resources.filter(r => r.support === 'cd').length;
+            document.getElementById('totalOnline').textContent = resources.filter(r => r.support === 'en_ligne').length;
+        }
+
+        // ===== EXPORT =====
+        document.getElementById('exportBtn').addEventListener('click', () => {
+            document.getElementById('exportModal').classList.add('active');
+        });
+
+        function closeExportModal() {
+            document.getElementById('exportModal').classList.remove('active');
+        }
+
+        function exportToCSV() {
+            if (resources.length === 0) {
+                alert('Aucune ressource à exporter');
+                return;
+            }
+
+            const headers = ['Support', 'Titre', 'Nature', 'Auteur', 'Date', 'Niveaux', 'Commentaires', 'Détails'];
+            const rows = resources.map(r => {
+                let details = '';
+                if (r.support === 'livre' && r.livre) {
+                    details = `Livre: ${r.livre.titre || ''} | Éditeur: ${r.livre.editeur || ''} | Année: ${r.livre.annee || ''} | Page: ${r.livre.page || ''} | Lien: ${r.livre.lien || ''}`;
+                } else if (r.support === 'cd' && r.cd) {
+                    details = `CD: ${r.cd.titre || ''} | Éditeur: ${r.cd.editeur || ''} | Piste: ${r.cd.piste || ''} | Lien: ${r.cd.lien || ''}`;
+                } else if (r.support === 'en_ligne') {
+                    details = `URL: ${r.url || ''}`;
+                }
+
+                return [
+                    r.support,
+                    r.titre,
+                    r.nature || '',
+                    r.auteur || '',
+                    r.date_publication || '',
+                    (r.niveaux || []).join('; '),
+                    r.commentaires || '',
+                    details
+                ];
+            });
+
+            let csv = headers.join(',') + '\n';
+            rows.forEach(row => {
+                csv += row.map(cell => `"${cell.replace(/"/g, '""')}"`).join(',') + '\n';
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `catalogue_ressources_${new Date().toISOString().split('T')[0]}.csv`;
+            link.click();
+
+            closeExportModal();
+        }
+
+        // ===== UTILITAIRES =====
+        function getSupportLabel(support) {
+            const labels = {
+                'livre': 'Livre',
+                'cd': 'CD Audio',
+                'ordinateur': 'Ordinateur',
+                'en_ligne': 'En ligne',
+                'autre': 'Autre'
+            };
+            return labels[support] || support;
+        }
+
+        function getNatureLabel(nature) {
+            const labels = {
+                'texte': 'Texte',
+                'audio': 'Audio',
+                'video': 'Vidéo',
+                'image': 'Image',
+                'exercice': 'Exercice',
+                'evaluation': 'Évaluation',
+                'autre': 'Autre'
+            };
+            return labels[nature] || nature;
+        }
+    </script>
+</body>
+</html>
