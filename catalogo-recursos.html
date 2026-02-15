@@ -548,7 +548,7 @@
                     </div>
 
                     <div class="input-group">
-                        <label for="nature">Nature du document</label>
+                        <label for="nature">Nature de la ressource</label>
                         <select id="nature">
                             <option value="">Choisir...</option>
                             <option value="texte">Texte</option>
@@ -557,6 +557,7 @@
                             <option value="image">Image/Peinture</option>
                             <option value="exercice">Exercice</option>
                             <option value="evaluation">Évaluation</option>
+                            <option value="sequence_complete">Séquence complète</option>
                             <option value="autre">Autre</option>
                         </select>
                     </div>
@@ -732,14 +733,14 @@
     <script>
         // ===== CONFIGURATION FIREBASE =====
         // IMPORTANT: Remplacez ces valeurs par votre propre configuration Firebase
-       const firebaseConfig = {
-          apiKey: "AIzaSyDajHF1ENm-jD7VQROz_TzwgHsu65BQjIQ",
-          authDomain: "catalogue-ressources-27780.firebaseapp.com",
-           projectId: "catalogue-ressources-27780",
-           storageBucket: "catalogue-ressources-27780.firebasestorage.app",
-          messagingSenderId: "209383161272",
-          appId: "1:209383161272:web:101d0474da93bc006aa34d"
-    };
+        const firebaseConfig = {
+            apiKey: "VOTRE_API_KEY",
+            authDomain: "VOTRE_PROJECT_ID.firebaseapp.com",
+            projectId: "VOTRE_PROJECT_ID",
+            storageBucket: "VOTRE_PROJECT_ID.appspot.com",
+            messagingSenderId: "VOTRE_SENDER_ID",
+            appId: "VOTRE_APP_ID"
+        };
 
         // Initialiser Firebase
         firebase.initializeApp(firebaseConfig);
@@ -1141,6 +1142,7 @@
                 'image': 'Image',
                 'exercice': 'Exercice',
                 'evaluation': 'Évaluation',
+                'sequence_complete': 'Séquence complète',
                 'autre': 'Autre'
             };
             return labels[nature] || nature;
