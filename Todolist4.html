@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Carnet de Bord</title>
+<link href="https://fonts.googleapis.com/css2?family=Lora:wght@600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #1c1f26;
+  --surface: #252930;
+  --surface2: #2e333d;
+  --border: rgba(255,255,255,0.07);
+  --text: #e8e4dc;
+  --text2: #8b8fa8;
+  --text3: #5a5e72;
+  --accent: #e8c96d;
+  --danger: #e07070;
+  --success: #6dbf8e;
+  --radius: 10px;
+  --shadow: 0 4px 24px rgba(0,0,0,0.35);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; font-size: 15px; }
+
+/* HEADER */
+header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 0 24px;
+  height: 58px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: var(--shadow);
+}
+header h1 { font-family: 'Lora', serif; font-size: 1.2rem; color: var(--accent); white-space: nowrap; }
+.header-date { font-size: 0.76rem; color: var(--text3); font-weight: 300; }
+.spacer { flex: 1; }
+.sync-indicator { font-size: 0.72rem; color: var(--text3); display: flex; align-items: center; gap: 5px; }
+.sync-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--text3); transition: background 0.3s; }
+.sync-dot.ok { background: var(--success); }
+.sync-dot.err { background: var(--danger); }
+.sync-dot.loading { background: var(--accent); animation: pulse 1s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+.hbtn { border: none; border-radius: 7px; padding: 6px 13px; font-family: inherit; font-size: 0.79rem; font-weight: 600; cursor: pointer; transition: all 0.15s; }
+.hbtn:hover { transform: translateY(-1px); filter: brightness(1.12); }
+.hbtn-accent { background: var(--accent); color: #1c1a12; }
+.hbtn-ghost { background: var(--surface2); color: var(--text2); }
+
+/* TABS */
+.tabs { display: flex; border-bottom: 1px solid var(--border); background: var(--surface); padding: 0 24px; position: sticky; top: 58px; z-index: 99; }
+.tab { padding: 10px 18px; font-size: 0.82rem; font-weight: 600; color: var(--text3); cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.15s; }
+.tab:hover { color: var(--text2); }
+.tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+/* CONTAINER */
+.container { max-width: 860px; margin: 0 auto; padding: 24px 20px 80px; }
+
+/* FILTER BAR */
+.filter-bar { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 20px; align-items: center; }
+.filter-chip { padding: 4px 12px; border-radius: 20px; font-size: 0.78rem; font-weight: 600; cursor: pointer; border: 1.5px solid var(--border); background: var(--surface); color: var(--text2); transition: all 0.15s; }
+.filter-chip:hover { color: var(--text); border-color: rgba(255,255,255,0.2); }
+.filter-chip.active { background: var(--accent); color: #1c1a12; border-color: var(--accent); }
+
+/* CATEGORY CARD */
+.cat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 12px; overflow: hidden; }
+.cat-head { display: flex; align-items: center; padding: 11px 14px; gap: 10px; cursor: pointer; border-left: 4px solid transparent; transition: background 0.15s; user-select: none; }
+.cat-head:hover { background: rgba(255,255,255,0.03); }
+.cat-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.cat-name { font-family: 'Lora', serif; font-size: 0.95rem; font-weight: 600; flex: 1; }
+.cat-badges { display: flex; gap: 5px; }
+.badge { font-size: 0.7rem; font-weight: 600; padding: 2px 7px; border-radius: 8px; background: var(--surface2); color: var(--text2); }
+.badge.pending { background: rgba(232,201,109,0.15); color: var(--accent); }
+.cat-controls { display: flex; gap: 2px; opacity: 0; transition: opacity 0.15s; }
+.cat-card:hover .cat-controls { opacity: 1; }
+.icon-btn { background: none; border: none; color: var(--text3); cursor: pointer; padding: 4px 6px; border-radius: 5px; font-size: 0.82rem; transition: all 0.12s; line-height: 1; }
+.icon-btn:hover { background: var(--surface2); color: var(--text); }
+.cat-chevron { font-size: 0.75rem; color: var(--text3); transition: transform 0.2s; margin-left: 2px; }
+.cat-chevron.up { transform: rotate(180deg); }
+
+/* TASK BODY */
+.task-body { padding: 0 14px 8px; }
+.task-body.hidden { display: none; }
+.task-row { display: flex; align-items: flex-start; gap: 10px; padding: 7px 0; border-bottom: 1px solid var(--border); transition: opacity 0.25s; }
+.task-row:last-of-type { border-bottom: none; }
+.task-row.done { opacity: 0.3; }
+.task-cb { appearance: none; width: 17px; height: 17px; border: 1.5px solid var(--text3); border-radius: 4px; cursor: pointer; flex-shrink: 0; margin-top: 2px; position: relative; transition: all 0.15s; background: transparent; }
+.task-cb:checked { background: var(--success); border-color: var(--success); }
+.task-cb:checked::after { content: '✓'; position: absolute; top: -2px; left: 2px; color: #0f2018; font-size: 12px; font-weight: 700; }
+.task-label { flex: 1; font-size: 0.88rem; line-height: 1.45; padding-top: 1px; }
+.task-row.done .task-label { text-decoration: line-through; color: var(--text3); }
+.task-date { font-size: 0.7rem; color: var(--text3); white-space: nowrap; padding-top: 3px; }
+.task-del { opacity: 0; background: none; border: none; color: var(--danger); cursor: pointer; padding: 2px 5px; border-radius: 4px; font-size: 0.8rem; transition: all 0.12s; }
+.task-row:hover .task-del { opacity: 1; }
+
+/* ADD ROW */
+.add-row { display: flex; align-items: center; gap: 8px; padding: 8px 0 4px; border-top: 1px dashed var(--border); margin-top: 6px; }
+.add-input { flex: 1; background: transparent; border: none; outline: none; font-family: inherit; font-size: 0.85rem; color: var(--text); padding: 4px 0; border-bottom: 1px solid var(--border); transition: border-color 0.2s; }
+.add-input:focus { border-color: var(--accent); }
+.add-input::placeholder { color: var(--text3); font-style: italic; }
+.add-confirm { background: none; border: none; color: var(--text3); cursor: pointer; font-size: 1.1rem; padding: 2px 6px; border-radius: 4px; transition: all 0.12s; }
+.add-confirm:hover { color: var(--accent); background: rgba(232,201,109,0.1); }
+
+/* TEMPLATES */
+.tmpl-section { border-top: 1px solid var(--border); background: rgba(0,0,0,0.15); }
+.tmpl-toggle { display: flex; align-items: center; gap: 6px; padding: 7px 14px; cursor: pointer; font-size: 0.75rem; font-weight: 600; color: var(--text3); transition: color 0.15s; user-select: none; }
+.tmpl-toggle:hover { color: var(--text2); }
+.tmpl-chips { display: flex; flex-wrap: wrap; gap: 5px; padding: 4px 14px 10px; }
+.tmpl-chip { background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 3px 10px; font-size: 0.76rem; cursor: pointer; color: var(--text2); transition: all 0.14s; }
+.tmpl-chip:hover { background: var(--accent); color: #1c1a12; border-color: var(--accent); transform: translateY(-1px); }
+
+/* HISTORY */
+.history-toolbar { display: flex; gap: 10px; margin-bottom: 18px; flex-wrap: wrap; align-items: center; }
+.search-input { flex: 1; min-width: 180px; background: var(--surface); border: 1px solid var(--border); border-radius: 7px; padding: 8px 14px; font-family: inherit; font-size: 0.88rem; color: var(--text); outline: none; transition: border-color 0.2s; }
+.search-input:focus { border-color: var(--accent); }
+.search-input::placeholder { color: var(--text3); }
+.hist-cat-sel { background: var(--surface); border: 1px solid var(--border); border-radius: 7px; padding: 8px 12px; font-family: inherit; font-size: 0.85rem; color: var(--text2); outline: none; cursor: pointer; }
+.hist-day { margin-bottom: 18px; }
+.hist-day-header { font-size: 0.72rem; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; padding-bottom: 4px; border-bottom: 1px solid var(--border); }
+.hist-item { display: flex; align-items: baseline; gap: 10px; padding: 5px 0; border-bottom: 1px solid rgba(255,255,255,0.03); font-size: 0.86rem; }
+.hist-cat-tag { font-size: 0.7rem; font-weight: 700; padding: 2px 7px; border-radius: 8px; white-space: nowrap; flex-shrink: 0; }
+.hist-task-text { color: var(--text2); flex: 1; }
+.hist-time { font-size: 0.7rem; color: var(--text3); white-space: nowrap; }
+.empty-msg { text-align: center; padding: 32px; color: var(--text3); font-style: italic; font-size: 0.88rem; }
+
+/* MODALS */
+.overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 300; align-items: center; justify-content: center; backdrop-filter: blur(3px); }
+.overlay.open { display: flex; }
+.modal { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 26px; max-width: 460px; width: 92%; box-shadow: 0 24px 80px rgba(0,0,0,0.5); animation: popIn 0.18s ease; }
+@keyframes popIn { from{transform:scale(0.94) translateY(-10px);opacity:0} to{transform:scale(1) translateY(0);opacity:1} }
+.modal h3 { font-family: 'Lora', serif; font-size: 1.1rem; color: var(--accent); margin-bottom: 18px; }
+.flabel { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text3); margin-bottom: 5px; margin-top: 14px; display: block; }
+.flabel:first-of-type { margin-top: 0; }
+.modal input, .modal select, .modal textarea { width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 7px; padding: 9px 12px; font-family: inherit; font-size: 0.88rem; color: var(--text); outline: none; transition: border-color 0.2s; }
+.modal input:focus, .modal select:focus, .modal textarea:focus { border-color: var(--accent); }
+.modal textarea { min-height: 90px; resize: vertical; line-height: 1.5; }
+.modal select option { background: var(--surface); }
+.color-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
+.cpick { width: 26px; height: 26px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: transform 0.15s, border-color 0.15s; }
+.cpick:hover { transform: scale(1.2); }
+.cpick.sel { border-color: white; transform: scale(1.2); }
+.modal-foot { display: flex; gap: 8px; justify-content: flex-end; margin-top: 22px; }
+.mbtn { border: none; border-radius: 7px; padding: 8px 18px; font-family: inherit; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: all 0.15s; }
+.mbtn:hover { filter: brightness(1.1); transform: translateY(-1px); }
+.mbtn-accent { background: var(--accent); color: #1c1a12; }
+.mbtn-cancel { background: var(--surface2); color: var(--text2); }
+
+/* CONFIG SCREEN */
+#configScreen { display: none; position: fixed; inset: 0; background: var(--bg); z-index: 500; align-items: center; justify-content: center; padding: 20px; }
+#configScreen.show { display: flex; }
+.config-box { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 32px; max-width: 560px; width: 100%; box-shadow: var(--shadow); }
+.config-box h2 { font-family: 'Lora', serif; color: var(--accent); margin-bottom: 8px; font-size: 1.4rem; }
+.config-box p { color: var(--text2); font-size: 0.86rem; line-height: 1.7; margin-bottom: 16px; }
+.config-box ol { color: var(--text2); font-size: 0.84rem; line-height: 2; padding-left: 20px; margin-bottom: 18px; }
+.config-box code { background: var(--bg); padding: 2px 6px; border-radius: 4px; font-family: monospace; font-size: 0.82rem; color: var(--accent); }
+.config-textarea { width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 12px; font-family: monospace; font-size: 0.82rem; color: var(--text); min-height: 160px; outline: none; resize: vertical; transition: border-color 0.2s; margin-bottom: 10px; }
+.config-textarea:focus { border-color: var(--accent); }
+.config-error { color: var(--danger); font-size: 0.82rem; margin-bottom: 10px; min-height: 18px; }
+
+/* LOGIN SCREEN */
+#loginScreen { display: none; position: fixed; inset: 0; background: var(--bg); z-index: 400; align-items: center; justify-content: center; padding: 20px; }
+#loginScreen.show { display: flex; }
+.login-box { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 36px 32px; max-width: 380px; width: 100%; box-shadow: var(--shadow); }
+.login-box h2 { font-family: 'Lora', serif; color: var(--accent); font-size: 1.5rem; margin-bottom: 6px; }
+.login-box p { color: var(--text3); font-size: 0.82rem; margin-bottom: 24px; }
+.login-field { margin-bottom: 14px; }
+.login-field label { display: block; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text3); margin-bottom: 5px; }
+.login-field input { width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 7px; padding: 10px 12px; font-family: inherit; font-size: 0.9rem; color: var(--text); outline: none; transition: border-color 0.2s; }
+.login-field input:focus { border-color: var(--accent); }
+.login-error { color: var(--danger); font-size: 0.82rem; margin-bottom: 12px; min-height: 18px; }
+.login-btn { width: 100%; background: var(--accent); color: #1c1a12; border: none; border-radius: 7px; padding: 11px; font-family: inherit; font-size: 0.9rem; font-weight: 700; cursor: pointer; transition: all 0.15s; margin-top: 4px; }
+.login-btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
+.login-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+/* TOAST */
+.toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 10px 20px; font-size: 0.84rem; color: var(--text); z-index: 999; transition: transform 0.3s ease; box-shadow: var(--shadow); pointer-events: none; }
+.toast.show { transform: translateX(-50%) translateY(0); }
+
+@media(max-width:600px){
+  header{padding:0 12px;gap:8px}
+  header h1{font-size:1rem}
+  .header-date{display:none}
+  .hbtn{padding:5px 9px;font-size:0.75rem}
+  .tabs{padding:0 10px}
+  .container{padding:16px 12px 80px}
+}
+</style>
+</head>
+<body>
+
+<!-- CONFIG SCREEN -->
+<div id="configScreen" class="show">
+  <div class="config-box">
+    <h2>📒 Carnet de Bord</h2>
+    <p>Pour synchroniser vos données entre le collège et la maison, connectez votre projet Firebase Firestore.</p>
+    <ol>
+      <li>Allez sur <strong>console.firebase.google.com</strong> → ouvrez votre projet</li>
+      <li>Dans le menu gauche : <strong>Firestore Database</strong> → Créer une base de données → Mode test</li>
+      <li>⚙️ <strong>Paramètres du projet</strong> → <strong>Vos applications</strong> → icône <code>&lt;/&gt;</code> Web</li>
+      <li>Donnez un nom, puis copiez l'objet <code>firebaseConfig</code> affiché</li>
+      <li>Collez-le ci-dessous (tout le bloc JSON entre accolades)</li>
+    </ol>
+    <textarea class="config-textarea" id="fbConfigInput" placeholder="Collez ici le bloc firebaseConfig de Firebase (format JS ou JSON accepté)"></textarea>
+    <div class="config-error" id="configError"></div>
+    <button class="mbtn mbtn-accent" style="width:100%;padding:11px" onclick="connectFirebase()">Connecter Firebase →</button>
+  </div>
+</div>
+
+
+<!-- LOGIN SCREEN -->
+<div id="loginScreen">
+  <div class="login-box">
+    <h2>📒 Carnet de Bord</h2>
+    <p>Connectez-vous pour accéder à vos données</p>
+    <div class="login-field">
+      <label>Email</label>
+      <input type="email" id="loginEmail" placeholder="votre@email.com" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <div class="login-field">
+      <label>Mot de passe</label>
+      <input type="password" id="loginPassword" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <div class="login-error" id="loginError"></div>
+    <button class="login-btn" id="loginBtn" onclick="doLogin()">Se connecter</button>
+  </div>
+</div>
+
+<!-- APP -->
+<header>
+  <h1>📒 Carnet de Bord</h1>
+  <span class="header-date" id="headerDate"></span>
+  <div class="spacer"></div>
+  <div class="sync-indicator"><div class="sync-dot" id="syncDot"></div><span id="syncLabel">—</span></div>
+  <button class="hbtn hbtn-ghost" onclick="openModal('catModal')">+ Catégorie</button>
+  <button class="hbtn hbtn-accent" onclick="openModal('tmplModal')">+ Modèles</button>
+  <button class="hbtn hbtn-ghost" style="padding:5px 10px;font-size:1rem" onclick="showConfig()" title="Paramètres Firebase">⚙️</button>
+  <button class="hbtn hbtn-ghost" id="logoutBtn" style="display:none;color:var(--danger)" onclick="doLogout()">Déconnexion</button>
+</header>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('board',this)">Tâches</div>
+  <div class="tab" onclick="switchTab('history',this)">Historique</div>
+</div>
+
+<div id="tabBoard" class="container">
+  <div class="filter-bar" id="filterBar">
+    <span class="filter-chip active" onclick="setFilter('all',this)">Tout</span>
+  </div>
+  <div id="board"></div>
+</div>
+
+<div id="tabHistory" class="container" style="display:none">
+  <div class="history-toolbar">
+    <input class="search-input" id="searchInput" placeholder="🔍 Rechercher par mot-clé…" oninput="renderHistory()">
+    <select class="hist-cat-sel" id="histCatSel" onchange="renderHistory()">
+      <option value="all">Toutes les catégories</option>
+    </select>
+    <button class="hbtn hbtn-ghost" style="color:var(--danger)" onclick="clearHistory()">Vider</button>
+  </div>
+  <div id="historyList"></div>
+</div>
+
+<!-- MODAL: Catégorie -->
+<div class="overlay" id="catModal">
+  <div class="modal">
+    <h3>Nouvelle catégorie</h3>
+    <span class="flabel">Nom</span>
+    <input type="text" id="catName" placeholder="ex: 3ème 1, Voyage, ENT…">
+    <span class="flabel">Couleur</span>
+    <div class="color-row" id="colorRow"></div>
+    <span class="flabel">Modèles de tâches (une par ligne)</span>
+    <textarea id="catTemplates" placeholder="Correction éval EE&#10;Correction éval CO&#10;Reporter notes Pronote"></textarea>
+    <div class="modal-foot">
+      <button class="mbtn mbtn-cancel" onclick="closeModal('catModal')">Annuler</button>
+      <button class="mbtn mbtn-accent" onclick="addCategory()">Créer</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Modèles -->
+<div class="overlay" id="tmplModal">
+  <div class="modal">
+    <h3>Ajouter des modèles</h3>
+    <span class="flabel">Catégorie</span>
+    <select id="tmplCatSel"></select>
+    <span class="flabel">Modèles (un par ligne)</span>
+    <textarea id="tmplText" placeholder="Photocopie SQ3.Doc1&#10;Saisir notes carnet de bord"></textarea>
+    <div class="modal-foot">
+      <button class="mbtn mbtn-cancel" onclick="closeModal('tmplModal')">Annuler</button>
+      <button class="mbtn mbtn-accent" onclick="addTemplates()">Ajouter</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Renommer -->
+<div class="overlay" id="renameModal">
+  <div class="modal">
+    <h3>Renommer la catégorie</h3>
+    <span class="flabel">Nouveau nom</span>
+    <input type="text" id="renameInput">
+    <input type="hidden" id="renameId">
+    <div class="modal-foot">
+      <button class="mbtn mbtn-cancel" onclick="closeModal('renameModal')">Annuler</button>
+      <button class="mbtn mbtn-accent" onclick="renameCategory()">Renommer</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, doc, setDoc, onSnapshot, collection, addDoc, query, orderBy, writeBatch } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+// ── PALETTE ──────────────────────────────────────────────────────────────────
+const COLORS = ['#e07070','#e8a96d','#e8c96d','#8bc98b','#6dbfb8','#6d9be8','#a06de8','#e87db0','#8b8fa8','#c0a882'];
+
+// ── STATE ─────────────────────────────────────────────────────────────────────
+let db = null;
+let auth = null;
+let appData = { categories: [], order: [] };
+let history = [];
+let currentFilter = 'all';
+let currentTab = 'board';
+let selectedColor = COLORS[0];
+
+// ── FIREBASE ──────────────────────────────────────────────────────────────────
+window.connectFirebase = async function() {
+  const raw = document.getElementById('fbConfigInput').value.trim();
+  const errEl = document.getElementById('configError');
+  errEl.textContent = '';
+  try {
+    const cfg = parseFirebaseConfig(raw);
+    if (!cfg.apiKey || !cfg.projectId) throw new Error('Config incomplète — vérifiez apiKey et projectId');
+    localStorage.setItem('fbConfig', JSON.stringify(cfg));
+    await bootApp(cfg);
+  } catch(e) { errEl.textContent = '⚠️ ' + e.message; }
+};
+
+function parseFirebaseConfig(raw) {
+  // Try plain JSON first
+  try { return JSON.parse(raw); } catch(e) {}
+  // Accept JS object syntax: extract the { ... } block, then quote bare keys
+  let s = raw;
+  // Remove "const firebaseConfig = " prefix and trailing ";"
+  s = s.replace(/^\s*const\s+\w+\s*=\s*/, '').replace(/;\s*$/, '').trim();
+  // Quote bare keys: word: -> "word":
+  s = s.replace(/([{,]\s*)([a-zA-Z_]\w*)(\s*:)/g, '$1"$2"$3');
+  // Replace single quotes with double quotes for values
+  s = s.replace(/:\s*'([^']*)'/g, ': "$1"');
+  try { return JSON.parse(s); } catch(e) {
+    throw new Error('Format non reconnu. Copiez uniquement le bloc { ... } affiché par Firebase.');
+  }
+}
+
+window.showConfig = function() { document.getElementById('configScreen').classList.add('show'); };
+
+async function bootApp(cfg) {
+  setSyncState('loading', 'Connexion…');
+  try {
+    const app = initializeApp(cfg);
+    db = getFirestore(app);
+    auth = getAuth(app);
+    document.getElementById('configScreen').classList.remove('show');
+    setSyncState('ok', 'Connecté');
+    // Watch auth state
+    onAuthStateChanged(auth, user => {
+      if (user) {
+        document.getElementById('loginScreen').classList.remove('show');
+        document.getElementById('logoutBtn').style.display = '';
+        startListeners();
+      } else {
+        document.getElementById('loginScreen').classList.add('show');
+        document.getElementById('logoutBtn').style.display = 'none';
+        document.getElementById('board').innerHTML = '';
+        setSyncState('loading', 'Non connecté');
+      }
+    });
+  } catch(e) {
+    setSyncState('err', 'Erreur');
+    document.getElementById('configError').textContent = '⚠️ ' + e.message;
+    document.getElementById('configScreen').classList.add('show');
+  }
+}
+
+window.doLogin = async function() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const pwd = document.getElementById('loginPassword').value;
+  const errEl = document.getElementById('loginError');
+  const btn = document.getElementById('loginBtn');
+  errEl.textContent = '';
+  btn.disabled = true;
+  btn.textContent = 'Connexion…';
+  try {
+    await signInWithEmailAndPassword(auth, email, pwd);
+    // onAuthStateChanged handles the rest
+  } catch(e) {
+    const msgs = {
+      'auth/invalid-credential': 'Email ou mot de passe incorrect',
+      'auth/invalid-email': 'Email invalide',
+      'auth/too-many-requests': 'Trop de tentatives, réessayez plus tard',
+      'auth/user-not-found': 'Aucun compte avec cet email',
+      'auth/wrong-password': 'Mot de passe incorrect',
+    };
+    errEl.textContent = msgs[e.code] || ('Erreur : ' + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Se connecter';
+  }
+};
+
+window.doLogout = async function() {
+  if (!auth) return;
+  await signOut(auth);
+  toast('Déconnecté');
+};
+
+function startListeners() {
+  // Main data
+  onSnapshot(doc(db, 'carnet', 'data'), snap => {
+    if (snap.exists()) {
+      appData = snap.data();
+    } else {
+      appData = { categories: defaultCategories(), order: [] };
+      saveData();
+    }
+    syncOrder();
+    render();
+    setSyncState('ok', 'Synchronisé');
+  }, () => setSyncState('err', 'Erreur sync'));
+
+  // History
+  const hq = query(collection(db, 'history'), orderBy('completedAt', 'desc'));
+  onSnapshot(hq, snap => {
+    history = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    if (currentTab === 'history') renderHistory();
+  });
+}
+
+async function saveData() {
+  if (!db) return;
+  setSyncState('loading', 'Sauvegarde…');
+  try {
+    await setDoc(doc(db, 'carnet', 'data'), appData);
+    setSyncState('ok', 'Synchronisé');
+  } catch(e) { setSyncState('err', 'Erreur'); }
+}
+
+// Auto-reconnect
+const saved = localStorage.getItem('fbConfig');
+if (saved) { document.getElementById('fbConfigInput').value = saved; try { bootApp(JSON.parse(saved)); } catch(e){} }
+
+// ── DEFAULTS ──────────────────────────────────────────────────────────────────
+function defaultCategories() {
+  return [
+    { id: uid(), name: '3ème 1',    color: COLORS[0], collapsed: false, templates: ['Correction éval EE','Correction éval CO','Reporter notes Pronote','Saisir notes carnet de bord'], tasks: [] },
+    { id: uid(), name: '4ème 2',    color: COLORS[5], collapsed: false, templates: ['Reporter notes Pronote','Reporter notes carnet de bord','Correction éval EO','Correction éval CE'], tasks: [] },
+    { id: uid(), name: '5ème',      color: COLORS[3], collapsed: false, templates: ['Photocopie SQ3.Doc1','Photocopie SQ3.Doc2','Préparer correction','Saisir notes'], tasks: [] },
+    { id: uid(), name: 'Voyage',    color: COLORS[6], collapsed: false, templates: ['Envoyer liste participants','Réserver bus','Préparer fiche infos parents','Récupérer autorisations'], tasks: [] },
+    { id: uid(), name: 'ENT / Admin', color: COLORS[7], collapsed: false, templates: ['Mettre à jour ENT','Saisir absences','Envoyer message parents','Remplir bulletin'], tasks: [] }
+  ];
+}
+
+function syncOrder() {
+  if (!appData.order) appData.order = [];
+  const ids = (appData.categories||[]).map(c => c.id);
+  ids.forEach(id => { if (!appData.order.includes(id)) appData.order.push(id); });
+  appData.order = appData.order.filter(id => ids.includes(id));
+}
+
+// ── RENDER ────────────────────────────────────────────────────────────────────
+function render() {
+  renderFilterBar();
+  renderBoard();
+}
+
+function orderedCats() {
+  const order = appData.order || [];
+  return [...(appData.categories||[])].sort((a,b) => order.indexOf(a.id) - order.indexOf(b.id));
+}
+
+function renderFilterBar() {
+  const bar = document.getElementById('filterBar');
+  bar.innerHTML = `<span class="filter-chip ${currentFilter==='all'?'active':''}" onclick="setFilter('all',this)">Tout</span>` +
+    orderedCats().map(c => `<span class="filter-chip ${currentFilter===c.id?'active':''}"
+      style="${currentFilter===c.id?`background:${c.color};border-color:${c.color};color:#111`:''}"
+      onclick="setFilter('${c.id}',this)">${esc(c.name)}</span>`).join('');
+}
+
+function renderBoard() {
+  const board = document.getElementById('board');
+  const cats = currentFilter === 'all' ? orderedCats() : orderedCats().filter(c => c.id === currentFilter);
+  if (!cats.length) { board.innerHTML = '<div class="empty-msg">Aucune catégorie — créez-en une via "+ Catégorie"</div>'; return; }
+  board.innerHTML = cats.map((c, i) => renderCat(c, i, cats.length)).join('');
+}
+
+function renderCat(cat, idx, total) {
+  const tasks = cat.tasks || [];
+  const pending = tasks.filter(t => !t.done);
+  const done = tasks.filter(t => t.done);
+
+  return `<div class="cat-card" id="cat-${cat.id}">
+    <div class="cat-head" onclick="toggleCat('${cat.id}')" style="border-left-color:${cat.color}">
+      <span class="cat-dot" style="background:${cat.color}"></span>
+      <span class="cat-name">${esc(cat.name)}</span>
+      <div class="cat-badges">
+        ${pending.length > 0 ? `<span class="badge pending">${pending.length} à faire</span>` : ''}
+        ${done.length > 0 ? `<span class="badge">${done.length} faite${done.length>1?'s':''}</span>` : ''}
+      </div>
+      <div class="cat-controls" onclick="event.stopPropagation()">
+        ${idx > 0 ? `<button class="icon-btn" onclick="moveCat('${cat.id}',-1)" title="Monter">↑</button>` : ''}
+        ${idx < total-1 ? `<button class="icon-btn" onclick="moveCat('${cat.id}',1)" title="Descendre">↓</button>` : ''}
+        <button class="icon-btn" onclick="openRename('${cat.id}')">✏️</button>
+        <button class="icon-btn" style="color:var(--danger)" onclick="deleteCat('${cat.id}')">✕</button>
+      </div>
+      <span class="cat-chevron ${cat.collapsed?'':'up'}">▾</span>
+    </div>
+
+    <div class="task-body ${cat.collapsed?'hidden':''}" id="tbody-${cat.id}">
+      ${tasks.length===0 ? '<div class="empty-msg" style="padding:12px 0 6px;font-size:0.82rem">Aucune tâche — cliquez sur un modèle ou tapez ci-dessous</div>' : ''}
+      ${tasks.map(t => renderTask(t, cat.id)).join('')}
+      ${done.length > 0 ? `<div style="text-align:right;padding:2px 0 4px">
+        <button class="icon-btn" style="font-size:0.72rem;color:var(--danger)" onclick="clearDone('${cat.id}')">Effacer les tâches cochées</button>
+      </div>` : ''}
+      <div class="add-row">
+        <input class="add-input" id="inp-${cat.id}" placeholder="Ajouter une tâche…" onkeydown="if(event.key==='Enter')quickAdd('${cat.id}')">
+        <button class="add-confirm" onclick="quickAdd('${cat.id}')">＋</button>
+      </div>
+    </div>
+
+    <div class="tmpl-section">
+      <div class="tmpl-toggle" onclick="toggleTmpl('${cat.id}')">
+        📋 Modèles rapides
+        <span id="tarr-${cat.id}" style="margin-left:auto">▸</span>
+      </div>
+      <div class="tmpl-chips" id="tchips-${cat.id}" style="display:none">
+        ${(cat.templates||[]).map(t => `<span class="tmpl-chip" onclick="useTemplate('${cat.id}',${JSON.stringify(t)})">${esc(t)}</span>`).join('')}
+        ${!(cat.templates||[]).length ? '<span style="color:var(--text3);font-size:0.76rem;font-style:italic">Aucun modèle</span>' : ''}
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderTask(t, catId) {
+  const dateStr = t.createdAt ? new Date(t.createdAt).toLocaleDateString('fr-FR',{day:'numeric',month:'short'}) : '';
+  return `<div class="task-row ${t.done?'done':''}" id="tr-${t.id}">
+    <input type="checkbox" class="task-cb" ${t.done?'checked':''} onchange="toggleTask('${catId}','${t.id}')">
+    <span class="task-label">${esc(t.text)}</span>
+    <span class="task-date">${dateStr}</span>
+    <button class="task-del" onclick="deleteTask('${catId}','${t.id}')">✕</button>
+  </div>`;
+}
+
+// ── HISTORY ───────────────────────────────────────────────────────────────────
+window.renderHistory = function() {
+  const q = document.getElementById('searchInput').value.trim().toLowerCase();
+  const catF = document.getElementById('histCatSel').value;
+
+  // Refresh cat filter options
+  const sel = document.getElementById('histCatSel');
+  const prev = sel.value;
+  sel.innerHTML = '<option value="all">Toutes les catégories</option>' +
+    orderedCats().map(c => `<option value="${c.id}">${esc(c.name)}</option>`).join('');
+  sel.value = prev;
+
+  let items = [...history];
+  if (catF !== 'all') items = items.filter(h => h.catId === catF);
+  if (q) items = items.filter(h => (h.text||'').toLowerCase().includes(q) || (h.catName||'').toLowerCase().includes(q));
+
+  if (!items.length) {
+    document.getElementById('historyList').innerHTML = '<div class="empty-msg">Aucun résultat dans l\'historique</div>';
+    return;
+  }
+
+  const groups = {};
+  items.forEach(h => {
+    const d = new Date(h.completedAt).toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+    if (!groups[d]) groups[d] = [];
+    groups[d].push(h);
+  });
+
+  document.getElementById('historyList').innerHTML = Object.entries(groups).map(([day, its]) =>
+    `<div class="hist-day">
+      <div class="hist-day-header">${day}</div>
+      ${its.map(h => {
+        const cat = (appData.categories||[]).find(c => c.id === h.catId);
+        const color = cat?.color || '#8b8fa8';
+        const time = new Date(h.completedAt).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+        return `<div class="hist-item">
+          <span class="hist-cat-tag" style="background:${color}25;color:${color}">${esc(h.catName)}</span>
+          <span class="hist-task-text">${esc(h.text)}</span>
+          <span class="hist-time">${time}</span>
+        </div>`;
+      }).join('')}
+    </div>`
+  ).join('');
+};
+
+window.clearHistory = async function() {
+  if (!confirm('Supprimer tout l\'historique ? Cette action est irréversible.')) return;
+  const batch = writeBatch(db);
+  history.forEach(h => batch.delete(doc(db, 'history', h.id)));
+  await batch.commit();
+  toast('Historique vidé');
+};
+
+// ── ACTIONS ───────────────────────────────────────────────────────────────────
+window.toggleCat = function(id) {
+  const cat = findCat(id); if (!cat) return;
+  cat.collapsed = !cat.collapsed;
+  saveData();
+};
+
+window.moveCat = function(id, dir) {
+  const order = appData.order || [];
+  const idx = order.indexOf(id);
+  if (idx < 0) return;
+  const ni = idx + dir;
+  if (ni < 0 || ni >= order.length) return;
+  [order[idx], order[ni]] = [order[ni], order[idx]];
+  appData.order = order;
+  saveData();
+};
+
+window.toggleTask = async function(catId, taskId) {
+  const cat = findCat(catId);
+  const task = (cat.tasks||[]).find(t => t.id === taskId);
+  if (!task) return;
+  task.done = !task.done;
+  if (task.done) {
+    task.completedAt = Date.now();
+    await addDoc(collection(db, 'history'), { catId, catName: cat.name, text: task.text, completedAt: task.completedAt });
+  } else {
+    task.completedAt = null;
+  }
+  saveData();
+};
+
+window.quickAdd = function(catId) {
+  const inp = document.getElementById(`inp-${catId}`);
+  const text = inp.value.trim(); if (!text) return;
+  const cat = findCat(catId);
+  cat.tasks.push({ id: uid(), text, done: false, createdAt: Date.now() });
+  inp.value = '';
+  saveData();
+  setTimeout(() => { const el = document.getElementById(`inp-${catId}`); if(el) el.focus(); }, 60);
+};
+
+// KEY FEATURE: template click fills the input field of that category
+window.useTemplate = function(catId, text) {
+  // If cat is collapsed, expand it
+  const cat = findCat(catId);
+  if (cat && cat.collapsed) { cat.collapsed = false; saveData(); return; }
+
+  const inp = document.getElementById(`inp-${catId}`);
+  if (!inp) return;
+
+  // Check not already pending
+  const exists = (cat.tasks||[]).find(t => t.text === text && !t.done);
+  if (exists) {
+    const el = document.getElementById(`tr-${exists.id}`);
+    if (el) { el.style.background='rgba(232,201,109,0.1)'; setTimeout(()=>el.style.background='',700); }
+    toast('Cette tâche est déjà en cours ✓');
+    return;
+  }
+
+  inp.value = text;
+  inp.focus();
+  inp.select();
+  // Scroll input into view
+  inp.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  toast('Appuyez sur Entrée pour confirmer, ou modifiez le texte');
+};
+
+window.deleteTask = function(catId, taskId) {
+  const cat = findCat(catId);
+  cat.tasks = (cat.tasks||[]).filter(t => t.id !== taskId);
+  saveData();
+};
+
+window.clearDone = function(catId) {
+  const cat = findCat(catId);
+  cat.tasks = (cat.tasks||[]).filter(t => !t.done);
+  saveData();
+};
+
+window.deleteCat = function(id) {
+  if (!confirm('Supprimer cette catégorie et toutes ses tâches ?')) return;
+  appData.categories = (appData.categories||[]).filter(c => c.id !== id);
+  appData.order = (appData.order||[]).filter(i => i !== id);
+  if (currentFilter === id) currentFilter = 'all';
+  saveData();
+};
+
+window.openRename = function(id) {
+  const cat = findCat(id);
+  document.getElementById('renameInput').value = cat.name;
+  document.getElementById('renameId').value = id;
+  openModal('renameModal');
+};
+
+window.renameCategory = function() {
+  const id = document.getElementById('renameId').value;
+  const name = document.getElementById('renameInput').value.trim(); if (!name) return;
+  const cat = findCat(id); if (cat) cat.name = name;
+  closeModal('renameModal');
+  saveData();
+};
+
+window.setFilter = function(id, el) {
+  currentFilter = id;
+  document.querySelectorAll('.filter-chip').forEach(c => { c.classList.remove('active'); c.style.cssText=''; });
+  el.classList.add('active');
+  if (id !== 'all') {
+    const cat = findCat(id);
+    if (cat) { el.style.background=cat.color; el.style.borderColor=cat.color; el.style.color='#111'; }
+  }
+  renderBoard();
+};
+
+window.toggleTmpl = function(catId) {
+  const chips = document.getElementById(`tchips-${catId}`);
+  const arr = document.getElementById(`tarr-${catId}`);
+  if (!chips) return;
+  const open = chips.style.display === 'none';
+  chips.style.display = open ? 'flex' : 'none';
+  arr.textContent = open ? '▾' : '▸';
+};
+
+// ── MODALS ────────────────────────────────────────────────────────────────────
+window.openModal = function(id) {
+  if (id === 'tmplModal') document.getElementById('tmplCatSel').innerHTML = orderedCats().map(c => `<option value="${c.id}">${esc(c.name)}</option>`).join('');
+  if (id === 'catModal') buildColorPicker();
+  document.getElementById(id).classList.add('open');
+};
+window.closeModal = function(id) { document.getElementById(id).classList.remove('open'); };
+document.querySelectorAll('.overlay').forEach(o => o.addEventListener('click', e => { if(e.target===o) closeModal(o.id); }));
+
+window.addCategory = function() {
+  const name = document.getElementById('catName').value.trim(); if (!name) return;
+  const templates = document.getElementById('catTemplates').value.split('\n').map(s=>s.trim()).filter(Boolean);
+  const newCat = { id: uid(), name, color: selectedColor, collapsed: false, templates, tasks: [] };
+  if (!appData.categories) appData.categories = [];
+  if (!appData.order) appData.order = [];
+  appData.categories.push(newCat);
+  appData.order.push(newCat.id);
+  document.getElementById('catName').value = '';
+  document.getElementById('catTemplates').value = '';
+  closeModal('catModal');
+  saveData();
+};
+
+window.addTemplates = function() {
+  const catId = document.getElementById('tmplCatSel').value;
+  const lines = document.getElementById('tmplText').value.split('\n').map(s=>s.trim()).filter(Boolean);
+  const cat = findCat(catId);
+  if (cat) cat.templates = [...(cat.templates||[]), ...lines];
+  document.getElementById('tmplText').value = '';
+  closeModal('tmplModal');
+  saveData();
+  toast(`${lines.length} modèle${lines.length>1?'s':''} ajouté${lines.length>1?'s':''}`);
+};
+
+// ── COLOR PICKER ──────────────────────────────────────────────────────────────
+function buildColorPicker() {
+  document.getElementById('colorRow').innerHTML = COLORS.map(c =>
+    `<div class="cpick ${selectedColor===c?'sel':''}" style="background:${c}" onclick="pickColor('${c}',this)"></div>`
+  ).join('');
+}
+window.pickColor = function(color, el) {
+  selectedColor = color;
+  document.querySelectorAll('.cpick').forEach(e => e.classList.remove('sel'));
+  el.classList.add('sel');
+};
+
+// ── TABS ──────────────────────────────────────────────────────────────────────
+window.switchTab = function(tab, el) {
+  currentTab = tab;
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('tabBoard').style.display = tab==='board' ? '' : 'none';
+  document.getElementById('tabHistory').style.display = tab==='history' ? '' : 'none';
+  if (tab === 'history') renderHistory();
+};
+
+// ── HELPERS ───────────────────────────────────────────────────────────────────
+function setSyncState(state, label) {
+  document.getElementById('syncDot').className = 'sync-dot ' + state;
+  document.getElementById('syncLabel').textContent = label;
+}
+function toast(msg, dur=2800) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.classList.remove('show'), dur);
+}
+function findCat(id) { return (appData.categories||[]).find(c => c.id === id); }
+function uid() { return Math.random().toString(36).slice(2,10); }
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+document.getElementById('headerDate').textContent = new Date().toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'});
+buildColorPicker();
+</script>
+</body>
+</html>
