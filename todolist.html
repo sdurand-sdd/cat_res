@@ -192,11 +192,6 @@ header h1 { font-family: 'Lora', serif; font-size: 1.2rem; color: var(--accent);
 </head>
 <body>
 
-    <button class="mbtn mbtn-accent" style="width:100%;padding:11px" onclick="connectFirebase()">Connecter Firebase →</button>
-  </div>
-</div>
-
-
 <!-- LOGIN SCREEN -->
 <div id="loginScreen">
   <div class="login-box">
@@ -778,6 +773,9 @@ function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;'
 
 document.getElementById('headerDate').textContent = new Date().toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'});
 buildColorPicker();
+
+// Démarrage
+bootApp(FIREBASE_CONFIG);
 </script>
 </body>
 </html>
