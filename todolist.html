@@ -346,6 +346,8 @@ async function bootApp(cfg) {
     });
   } catch(e) {
     setSyncState('err', 'Erreur connexion');
+    const errEl = document.getElementById('loginError');
+    if (errEl) errEl.textContent = '⚠️ Erreur Firebase : ' + e.message;
     console.error('Firebase init error:', e.message);
   }
 }
@@ -356,6 +358,14 @@ window.doLogin = async function() {
   const errEl = document.getElementById('loginError');
   const btn = document.getElementById('loginBtn');
   errEl.textContent = '';
+
+  if (!email || !pwd) { errEl.textContent = 'Remplissez email et mot de passe'; return; }
+  if (!auth) {
+    errEl.textContent = 'Initialisation en cours, réessayez dans 2 secondes…';
+    try { await bootApp(FIREBASE_CONFIG); } catch(e) {}
+    return;
+  }
+
   btn.disabled = true;
   btn.textContent = 'Connexion…';
   try {
@@ -368,8 +378,9 @@ window.doLogin = async function() {
       'auth/too-many-requests': 'Trop de tentatives, réessayez plus tard',
       'auth/user-not-found': 'Aucun compte avec cet email',
       'auth/wrong-password': 'Mot de passe incorrect',
+      'auth/network-request-failed': 'Pas de connexion réseau',
     };
-    errEl.textContent = msgs[e.code] || ('Erreur : ' + e.message);
+    errEl.textContent = msgs[e.code] || ('Erreur : ' + e.code);
   } finally {
     btn.disabled = false;
     btn.textContent = 'Se connecter';
