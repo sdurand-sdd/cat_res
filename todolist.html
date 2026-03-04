@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mon Carnet de Bord</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Source+Sans+3:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1a1a2e;
+    --paper: #f5f0e8;
+    --paper2: #ede7d9;
+    --accent: #c0392b;
+    --accent2: #2980b9;
+    --accent3: #27ae60;
+    --accent4: #8e44ad;
+    --accent5: #d35400;
+    --muted: #7f8c8d;
+    --line: rgba(0,0,0,0.1);
+    --shadow: 0 2px 12px rgba(0,0,0,0.12);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Source Sans 3', sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    min-height: 100vh;
+    background-image:
+      repeating-linear-gradient(transparent, transparent 27px, rgba(100,120,150,0.08) 27px, rgba(100,120,150,0.08) 28px);
+    background-attachment: fixed;
+  }
+
+  header {
+    background: var(--ink);
+    color: white;
+    padding: 20px 32px 16px;
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    box-shadow: var(--shadow);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.7rem;
+    letter-spacing: -0.5px;
+  }
+
+  header span {
+    font-size: 0.85rem;
+    opacity: 0.5;
+    font-weight: 300;
+  }
+
+  .toolbar {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-left: auto;
+    flex-wrap: wrap;
+  }
+
+  .btn {
+    border: none;
+    border-radius: 6px;
+    padding: 7px 14px;
+    font-family: inherit;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    letter-spacing: 0.3px;
+  }
+  .btn:hover { transform: translateY(-1px); filter: brightness(1.1); }
+  .btn:active { transform: translateY(0); }
+  .btn-primary { background: var(--accent); color: white; }
+  .btn-secondary { background: rgba(255,255,255,0.15); color: white; }
+  .btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--line); font-size: 0.78rem; padding: 5px 10px; }
+
+  .container {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 24px 20px 80px;
+  }
+
+  /* Filter bar */
+  .filter-bar {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+    align-items: center;
+  }
+  .filter-tag {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: all 0.15s;
+    background: var(--paper2);
+    color: var(--ink);
+  }
+  .filter-tag:hover { transform: translateY(-1px); }
+  .filter-tag.active {
+    background: var(--ink);
+    color: white;
+  }
+  .filter-label { font-size: 0.78rem; color: var(--muted); font-weight: 600; margin-right: 4px; }
+
+  /* Category sections */
+  .category-section {
+    margin-bottom: 18px;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    background: white;
+  }
+
+  .category-header {
+    display: flex;
+    align-items: center;
+    padding: 10px 16px;
+    cursor: pointer;
+    user-select: none;
+    gap: 10px;
+  }
+
+  .cat-dot {
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .category-header h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1rem;
+    font-weight: 700;
+    flex: 1;
+  }
+
+  .cat-count {
+    font-size: 0.75rem;
+    background: rgba(0,0,0,0.08);
+    border-radius: 10px;
+    padding: 2px 8px;
+    font-weight: 600;
+  }
+
+  .cat-toggle {
+    font-size: 0.8rem;
+    color: var(--muted);
+    transition: transform 0.2s;
+  }
+  .cat-toggle.collapsed { transform: rotate(-90deg); }
+
+  .task-list {
+    padding: 0 12px 8px;
+  }
+  .task-list.hidden { display: none; }
+
+  /* Task item */
+  .task-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 7px 4px;
+    border-bottom: 1px solid var(--line);
+    transition: opacity 0.3s;
+    group: true;
+  }
+  .task-item:last-child { border-bottom: none; }
+
+  .task-item.done {
+    opacity: 0.35;
+  }
+
+  .task-cb {
+    appearance: none;
+    width: 18px; height: 18px;
+    border: 2px solid var(--muted);
+    border-radius: 4px;
+    cursor: pointer;
+    flex-shrink: 0;
+    margin-top: 2px;
+    position: relative;
+    transition: all 0.15s;
+    background: white;
+  }
+  .task-cb:checked {
+    background: var(--ink);
+    border-color: var(--ink);
+  }
+  .task-cb:checked::after {
+    content: '✓';
+    position: absolute;
+    top: -2px; left: 2px;
+    color: white;
+    font-size: 13px;
+    font-weight: bold;
+  }
+
+  .task-text {
+    flex: 1;
+    font-size: 0.92rem;
+    line-height: 1.4;
+    padding-top: 1px;
+  }
+  .task-item.done .task-text {
+    text-decoration: line-through;
+  }
+
+  .task-actions {
+    display: flex;
+    gap: 4px;
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+  .task-item:hover .task-actions { opacity: 1; }
+  .task-act-btn {
+    background: none;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 0.85rem;
+    padding: 2px 5px;
+    border-radius: 4px;
+    transition: background 0.1s;
+  }
+  .task-act-btn:hover { background: var(--paper2); color: var(--ink); }
+
+  /* Add task row */
+  .add-task-row {
+    display: flex;
+    gap: 8px;
+    padding: 8px 4px 4px;
+    border-top: 1px dashed var(--line);
+    margin-top: 4px;
+  }
+  .add-task-input {
+    flex: 1;
+    border: none;
+    outline: none;
+    background: transparent;
+    font-family: inherit;
+    font-size: 0.88rem;
+    color: var(--ink);
+    padding: 4px 0;
+    border-bottom: 1px solid var(--line);
+    transition: border-color 0.2s;
+  }
+  .add-task-input:focus { border-color: var(--ink); }
+  .add-task-input::placeholder { color: var(--muted); font-style: italic; }
+  .add-task-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.1rem;
+    color: var(--muted);
+    padding: 2px 6px;
+    border-radius: 4px;
+    transition: all 0.15s;
+  }
+  .add-task-btn:hover { color: var(--ink); background: var(--paper2); }
+
+  /* Template drawer */
+  .template-drawer {
+    border-top: 1px solid var(--line);
+    background: var(--paper);
+  }
+  .template-header {
+    display: flex;
+    align-items: center;
+    padding: 6px 16px;
+    cursor: pointer;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--muted);
+    gap: 6px;
+  }
+  .template-header:hover { color: var(--ink); }
+  .templates-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    padding: 6px 14px 10px;
+  }
+  .template-chip {
+    background: white;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 3px 10px;
+    font-size: 0.78rem;
+    cursor: pointer;
+    transition: all 0.15s;
+    color: var(--ink);
+  }
+  .template-chip:hover {
+    background: var(--ink);
+    color: white;
+    border-color: var(--ink);
+    transform: translateY(-1px);
+  }
+
+  /* Modal */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+    max-width: 480px;
+    width: 90%;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    animation: slideIn 0.2s ease;
+  }
+  @keyframes slideIn {
+    from { transform: translateY(-20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+  .modal h3 {
+    font-family: 'Playfair Display', serif;
+    margin-bottom: 16px;
+    font-size: 1.2rem;
+  }
+  .modal label {
+    display: block;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--muted);
+    margin-bottom: 4px;
+    margin-top: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .modal input, .modal select, .modal textarea {
+    width: 100%;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 8px 10px;
+    font-family: inherit;
+    font-size: 0.9rem;
+    background: var(--paper);
+    color: var(--ink);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .modal input:focus, .modal select:focus, .modal textarea:focus {
+    border-color: var(--ink);
+    background: white;
+  }
+  .modal textarea { min-height: 80px; resize: vertical; }
+  .modal-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+    margin-top: 20px;
+  }
+  .btn-ink { background: var(--ink); color: white; }
+  .btn-cancel { background: var(--paper2); color: var(--ink); }
+
+  /* Colors for categories */
+  .colors-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
+  .color-pick {
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: transform 0.15s;
+  }
+  .color-pick:hover { transform: scale(1.2); }
+  .color-pick.selected { border-color: var(--ink); transform: scale(1.2); }
+
+  /* Empty state */
+  .empty-state {
+    text-align: center;
+    padding: 20px;
+    color: var(--muted);
+    font-style: italic;
+    font-size: 0.85rem;
+  }
+
+  /* Done count badge */
+  .done-badge {
+    font-size: 0.72rem;
+    color: var(--muted);
+    margin-left: 4px;
+  }
+
+  /* Clear done button */
+  .clear-done-btn {
+    font-size: 0.72rem;
+    background: none;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    padding: 2px 6px;
+    border-radius: 4px;
+    text-decoration: underline dotted;
+  }
+  .clear-done-btn:hover { color: var(--accent); }
+
+  /* Responsive */
+  @media (max-width: 600px) {
+    header { flex-wrap: wrap; padding: 14px 16px 10px; }
+    .toolbar { margin-left: 0; }
+    .container { padding: 16px 12px 80px; }
+    header h1 { font-size: 1.3rem; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>📒 Mon Carnet de Bord</h1>
+  <span id="todayDate"></span>
+  <div class="toolbar">
+    <button class="btn btn-secondary" onclick="openModal('addCatModal')">+ Catégorie</button>
+    <button class="btn btn-primary" onclick="openModal('addTemplateModal')">+ Modèle</button>
+    <button class="btn btn-secondary" onclick="clearAllDone()">🗑 Effacer cochés</button>
+  </div>
+</header>
+
+<div class="container">
+  <div class="filter-bar">
+    <span class="filter-label">Filtre :</span>
+    <span class="filter-tag active" data-filter="all" onclick="setFilter('all', this)">Tout</span>
+    <span id="filterTags"></span>
+  </div>
+  <div id="board"></div>
+</div>
+
+<!-- Modal: Ajouter catégorie -->
+<div class="modal-overlay" id="addCatModal">
+  <div class="modal">
+    <h3>Nouvelle catégorie</h3>
+    <label>Nom</label>
+    <input type="text" id="newCatName" placeholder="ex: 3ème 1, Voyage, ENT…" />
+    <label>Couleur</label>
+    <div class="colors-row" id="colorPicker"></div>
+    <label>Modèles de tâches (une par ligne)</label>
+    <textarea id="newCatTemplates" placeholder="Correction éval EE&#10;Correction éval CO&#10;Reporter notes Pronote"></textarea>
+    <div class="modal-actions">
+      <button class="btn btn-cancel" onclick="closeModal('addCatModal')">Annuler</button>
+      <button class="btn btn-ink" onclick="addCategory()">Créer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Ajouter modèle à catégorie existante -->
+<div class="modal-overlay" id="addTemplateModal">
+  <div class="modal">
+    <h3>Ajouter des modèles</h3>
+    <label>Catégorie</label>
+    <select id="templateCatSelect"></select>
+    <label>Nouveaux modèles (un par ligne)</label>
+    <textarea id="newTemplateText" placeholder="Photocopie SQ3.Doc1&#10;Saisir notes carnet de bord"></textarea>
+    <div class="modal-actions">
+      <button class="btn btn-cancel" onclick="closeModal('addTemplateModal')">Annuler</button>
+      <button class="btn btn-ink" onclick="addTemplates()">Ajouter</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Renommer catégorie -->
+<div class="modal-overlay" id="renameCatModal">
+  <div class="modal">
+    <h3>Renommer la catégorie</h3>
+    <label>Nouveau nom</label>
+    <input type="text" id="renameCatInput" />
+    <input type="hidden" id="renameCatId" />
+    <div class="modal-actions">
+      <button class="btn btn-cancel" onclick="closeModal('renameCatModal')">Annuler</button>
+      <button class="btn btn-ink" onclick="renameCategory()">Renommer</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── State ───────────────────────────────────────────────────────────────────
+const COLORS = ['#c0392b','#2980b9','#27ae60','#8e44ad','#d35400','#16a085','#c0392b','#2c3e50','#7f8c8d','#f39c12'];
+const COLOR_NAMES = ['Rouge','Bleu','Vert','Violet','Orange','Teal','Grenat','Ardoise','Gris','Ambre'];
+
+let data = loadData();
+let currentFilter = 'all';
+let selectedColor = COLORS[0];
+
+function loadData() {
+  try {
+    const d = JSON.parse(localStorage.getItem('carnetDeBord'));
+    if (d && d.categories) return d;
+  } catch(e) {}
+  return getDefaultData();
+}
+
+function getDefaultData() {
+  return {
+    categories: [
+      {
+        id: uid(), name: '3ème 1', color: '#c0392b', collapsed: false,
+        templates: ['Correction éval EE','Correction éval CO','Reporter notes Pronote','Saisir notes carnet de bord'],
+        tasks: []
+      },
+      {
+        id: uid(), name: '4ème 2', color: '#2980b9', collapsed: false,
+        templates: ['Reporter notes Pronote','Reporter notes carnet de bord','Correction éval EO','Correction éval CE'],
+        tasks: []
+      },
+      {
+        id: uid(), name: '5ème', color: '#27ae60', collapsed: false,
+        templates: ['Photocopie SQ3.Doc1','Photocopie SQ3.Doc2','Préparer correction','Saisir notes'],
+        tasks: []
+      },
+      {
+        id: uid(), name: 'Voyage', color: '#8e44ad', collapsed: false,
+        templates: ['Envoyer liste participants','Réserver bus','Préparer fiche infos parents','Récupérer autorisations'],
+        tasks: []
+      },
+      {
+        id: uid(), name: 'ENT / Admin', color: '#d35400', collapsed: false,
+        templates: ['Mettre à jour ENT','Saisir absences','Envoyer message parents','Remplir bulletin'],
+        tasks: []
+      }
+    ]
+  };
+}
+
+function saveData() {
+  localStorage.setItem('carnetDeBord', JSON.stringify(data));
+}
+
+function uid() {
+  return Math.random().toString(36).slice(2,10);
+}
+
+// ─── Render ───────────────────────────────────────────────────────────────────
+function render() {
+  renderFilterTags();
+  renderBoard();
+  saveData();
+}
+
+function renderFilterTags() {
+  const container = document.getElementById('filterTags');
+  container.innerHTML = data.categories.map(cat =>
+    `<span class="filter-tag ${currentFilter===cat.id?'active':''}"
+      data-filter="${cat.id}"
+      style="${currentFilter===cat.id?`background:${cat.color};border-color:${cat.color};`:''}"
+      onclick="setFilter('${cat.id}', this)">${cat.name}</span>`
+  ).join('');
+}
+
+function renderBoard() {
+  const board = document.getElementById('board');
+  const cats = currentFilter === 'all'
+    ? data.categories
+    : data.categories.filter(c => c.id === currentFilter);
+
+  board.innerHTML = cats.map(cat => renderCategory(cat)).join('');
+}
+
+function renderCategory(cat) {
+  const tasks = cat.tasks || [];
+  const pending = tasks.filter(t => !t.done);
+  const done = tasks.filter(t => t.done);
+  const isCollapsed = cat.collapsed;
+
+  return `
+  <div class="category-section" id="cat-${cat.id}">
+    <div class="category-header" onclick="toggleCollapse('${cat.id}')" style="background:${cat.color}15; border-left: 4px solid ${cat.color}">
+      <span class="cat-dot" style="background:${cat.color}"></span>
+      <h2>${cat.name}</h2>
+      ${done.length > 0 ? `<span class="done-badge">${done.length} faite${done.length>1?'s':''}</span>` : ''}
+      <span class="cat-count" style="background:${cat.color}25">${pending.length} à faire</span>
+      <button class="task-act-btn" onclick="event.stopPropagation();openRenameCat('${cat.id}')" title="Renommer">✏️</button>
+      <button class="task-act-btn" onclick="event.stopPropagation();deleteCategory('${cat.id}')" title="Supprimer catégorie">🗑</button>
+      <span class="cat-toggle ${isCollapsed?'collapsed':''}">▾</span>
+    </div>
+
+    <div class="task-list ${isCollapsed?'hidden':''}">
+      ${tasks.length === 0 ? '<div class="empty-state">Aucune tâche — utilisez les modèles ci-dessous ou ajoutez-en une</div>' : ''}
+      ${tasks.map(t => renderTask(t, cat.id)).join('')}
+
+      <div class="add-task-row">
+        <input class="add-task-input" id="inp-${cat.id}" placeholder="Ajouter une tâche…"
+          onkeydown="if(event.key==='Enter') quickAdd('${cat.id}')">
+        <button class="add-task-btn" onclick="quickAdd('${cat.id}')" title="Ajouter">＋</button>
+      </div>
+
+      ${done.length > 0 ? `<div style="text-align:right;padding:2px 4px 6px"><button class="clear-done-btn" onclick="clearDoneInCat('${cat.id}')">Effacer les tâches cochées</button></div>` : ''}
+    </div>
+
+    <div class="template-drawer">
+      <div class="template-header" onclick="toggleTemplates('${cat.id}')">
+        <span>📋</span> Modèles rapides <span id="tmpl-arrow-${cat.id}">▸</span>
+      </div>
+      <div class="templates-grid" id="tmpl-${cat.id}" style="display:none">
+        ${(cat.templates||[]).map(t =>
+          `<span class="template-chip" onclick="addFromTemplate('${cat.id}', ${JSON.stringify(t)})">${t}</span>`
+        ).join('')}
+        ${(cat.templates||[]).length === 0 ? '<span style="color:var(--muted);font-size:0.78rem;font-style:italic">Aucun modèle — ajoutez-en via le bouton "+ Modèle"</span>' : ''}
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderTask(t, catId) {
+  return `
+  <div class="task-item ${t.done?'done':''}" id="task-${t.id}">
+    <input type="checkbox" class="task-cb" ${t.done?'checked':''} onchange="toggleTask('${catId}','${t.id}')">
+    <span class="task-text">${escapeHtml(t.text)}</span>
+    <div class="task-actions">
+      <button class="task-act-btn" onclick="deleteTask('${catId}','${t.id}')" title="Supprimer">✕</button>
+    </div>
+  </div>`;
+}
+
+// ─── Actions ──────────────────────────────────────────────────────────────────
+function toggleCollapse(catId) {
+  const cat = data.categories.find(c => c.id === catId);
+  if (cat) cat.collapsed = !cat.collapsed;
+  render();
+}
+
+function toggleTemplates(catId) {
+  const grid = document.getElementById(`tmpl-${catId}`);
+  const arrow = document.getElementById(`tmpl-arrow-${catId}`);
+  if (grid.style.display === 'none') {
+    grid.style.display = 'flex';
+    arrow.textContent = '▾';
+  } else {
+    grid.style.display = 'none';
+    arrow.textContent = '▸';
+  }
+}
+
+function toggleTask(catId, taskId) {
+  const cat = data.categories.find(c => c.id === catId);
+  const task = cat.tasks.find(t => t.id === taskId);
+  if (task) task.done = !task.done;
+  render();
+}
+
+function deleteTask(catId, taskId) {
+  const cat = data.categories.find(c => c.id === catId);
+  cat.tasks = cat.tasks.filter(t => t.id !== taskId);
+  render();
+}
+
+function quickAdd(catId) {
+  const inp = document.getElementById(`inp-${catId}`);
+  const text = inp.value.trim();
+  if (!text) return;
+  const cat = data.categories.find(c => c.id === catId);
+  cat.tasks.push({ id: uid(), text, done: false });
+  inp.value = '';
+  render();
+  // re-focus
+  setTimeout(() => {
+    const el = document.getElementById(`inp-${catId}`);
+    if (el) el.focus();
+  }, 50);
+}
+
+function addFromTemplate(catId, text) {
+  const cat = data.categories.find(c => c.id === catId);
+  // Check not already pending
+  const exists = cat.tasks.some(t => t.text === text && !t.done);
+  if (exists) { flashExisting(cat.tasks.find(t => t.text === text && !t.done).id); return; }
+  cat.tasks.push({ id: uid(), text, done: false });
+  render();
+}
+
+function flashExisting(taskId) {
+  const el = document.getElementById(`task-${taskId}`);
+  if (el) {
+    el.style.background = '#ffeaa7';
+    setTimeout(() => el.style.background = '', 800);
+  }
+}
+
+function clearDoneInCat(catId) {
+  const cat = data.categories.find(c => c.id === catId);
+  cat.tasks = cat.tasks.filter(t => !t.done);
+  render();
+}
+
+function clearAllDone() {
+  data.categories.forEach(cat => {
+    cat.tasks = cat.tasks.filter(t => !t.done);
+  });
+  render();
+}
+
+function deleteCategory(catId) {
+  if (!confirm('Supprimer cette catégorie et toutes ses tâches ?')) return;
+  data.categories = data.categories.filter(c => c.id !== catId);
+  if (currentFilter === catId) currentFilter = 'all';
+  render();
+}
+
+function openRenameCat(catId) {
+  const cat = data.categories.find(c => c.id === catId);
+  document.getElementById('renameCatInput').value = cat.name;
+  document.getElementById('renameCatId').value = catId;
+  openModal('renameCatModal');
+}
+
+function renameCategory() {
+  const catId = document.getElementById('renameCatId').value;
+  const name = document.getElementById('renameCatInput').value.trim();
+  if (!name) return;
+  const cat = data.categories.find(c => c.id === catId);
+  if (cat) cat.name = name;
+  closeModal('renameCatModal');
+  render();
+}
+
+function setFilter(filter, el) {
+  currentFilter = filter;
+  document.querySelectorAll('.filter-tag').forEach(t => {
+    t.classList.remove('active');
+    t.style.background = '';
+    t.style.borderColor = '';
+    t.style.color = '';
+  });
+  el.classList.add('active');
+  if (filter !== 'all') {
+    const cat = data.categories.find(c => c.id === filter);
+    if (cat) {
+      el.style.background = cat.color;
+      el.style.borderColor = cat.color;
+      el.style.color = 'white';
+    }
+  }
+  renderBoard();
+}
+
+// ─── Modals ───────────────────────────────────────────────────────────────────
+function openModal(id) {
+  if (id === 'addTemplateModal') {
+    const sel = document.getElementById('templateCatSelect');
+    sel.innerHTML = data.categories.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+  }
+  if (id === 'addCatModal') {
+    buildColorPicker();
+  }
+  document.getElementById(id).classList.add('open');
+}
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) closeModal(m.id); });
+});
+
+function buildColorPicker() {
+  const container = document.getElementById('colorPicker');
+  container.innerHTML = COLORS.map((c, i) =>
+    `<div class="color-pick ${selectedColor===c?'selected':''}" style="background:${c}" title="${COLOR_NAMES[i]}"
+      onclick="pickColor('${c}', this)"></div>`
+  ).join('');
+}
+
+function pickColor(color, el) {
+  selectedColor = color;
+  document.querySelectorAll('.color-pick').forEach(e => e.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+function addCategory() {
+  const name = document.getElementById('newCatName').value.trim();
+  if (!name) return;
+  const templates = document.getElementById('newCatTemplates').value
+    .split('\n').map(s => s.trim()).filter(Boolean);
+  data.categories.push({
+    id: uid(), name, color: selectedColor,
+    collapsed: false, templates, tasks: []
+  });
+  document.getElementById('newCatName').value = '';
+  document.getElementById('newCatTemplates').value = '';
+  closeModal('addCatModal');
+  render();
+}
+
+function addTemplates() {
+  const catId = document.getElementById('templateCatSelect').value;
+  const lines = document.getElementById('newTemplateText').value
+    .split('\n').map(s => s.trim()).filter(Boolean);
+  const cat = data.categories.find(c => c.id === catId);
+  if (cat) cat.templates = [...(cat.templates||[]), ...lines];
+  document.getElementById('newTemplateText').value = '';
+  closeModal('addTemplateModal');
+  render();
+}
+
+// ─── Utils ────────────────────────────────────────────────────────────────────
+function escapeHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function setDate() {
+  const d = new Date();
+  const opts = { weekday:'long', day:'numeric', month:'long', year:'numeric' };
+  document.getElementById('todayDate').textContent = d.toLocaleDateString('fr-FR', opts);
+}
+
+// ─── Init ─────────────────────────────────────────────────────────────────────
+setDate();
+render();
+</script>
+</body>
+</html>
