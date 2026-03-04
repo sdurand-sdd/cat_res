@@ -192,20 +192,6 @@ header h1 { font-family: 'Lora', serif; font-size: 1.2rem; color: var(--accent);
 </head>
 <body>
 
-<!-- CONFIG SCREEN -->
-<div id="configScreen" class="show">
-  <div class="config-box">
-    <h2>📒 Carnet de Bord</h2>
-    <p>Pour synchroniser vos données entre le collège et la maison, connectez votre projet Firebase Firestore.</p>
-    <ol>
-      <li>Allez sur <strong>console.firebase.google.com</strong> → ouvrez votre projet</li>
-      <li>Dans le menu gauche : <strong>Firestore Database</strong> → Créer une base de données → Mode test</li>
-      <li>⚙️ <strong>Paramètres du projet</strong> → <strong>Vos applications</strong> → icône <code>&lt;/&gt;</code> Web</li>
-      <li>Donnez un nom, puis copiez l'objet <code>firebaseConfig</code> affiché</li>
-      <li>Collez-le ci-dessous (tout le bloc JSON entre accolades)</li>
-    </ol>
-    <textarea class="config-textarea" id="fbConfigInput" placeholder="Collez ici le bloc firebaseConfig de Firebase (format JS ou JSON accepté)"></textarea>
-    <div class="config-error" id="configError"></div>
     <button class="mbtn mbtn-accent" style="width:100%;padding:11px" onclick="connectFirebase()">Connecter Firebase →</button>
   </div>
 </div>
@@ -237,7 +223,6 @@ header h1 { font-family: 'Lora', serif; font-size: 1.2rem; color: var(--accent);
   <div class="sync-indicator"><div class="sync-dot" id="syncDot"></div><span id="syncLabel">—</span></div>
   <button class="hbtn hbtn-ghost" onclick="openModal('catModal')">+ Catégorie</button>
   <button class="hbtn hbtn-accent" onclick="openModal('tmplModal')">+ Modèles</button>
-  <button class="hbtn hbtn-ghost" style="padding:5px 10px;font-size:1rem" onclick="showConfig()" title="Paramètres Firebase">⚙️</button>
   <button class="hbtn hbtn-ghost" id="logoutBtn" style="display:none;color:var(--danger)" onclick="doLogout()">Déconnexion</button>
 </header>
 
@@ -330,35 +315,14 @@ let currentTab = 'board';
 let selectedColor = COLORS[0];
 
 // ── FIREBASE ──────────────────────────────────────────────────────────────────
-window.connectFirebase = async function() {
-  const raw = document.getElementById('fbConfigInput').value.trim();
-  const errEl = document.getElementById('configError');
-  errEl.textContent = '';
-  try {
-    const cfg = parseFirebaseConfig(raw);
-    if (!cfg.apiKey || !cfg.projectId) throw new Error('Config incomplète — vérifiez apiKey et projectId');
-    localStorage.setItem('fbConfig', JSON.stringify(cfg));
-    await bootApp(cfg);
-  } catch(e) { errEl.textContent = '⚠️ ' + e.message; }
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyCy9ooNIoqpfH8uxzo3_YboWvTqkxAmDgI",
+  authDomain: "todolist-9bab9.firebaseapp.com",
+  projectId: "todolist-9bab9",
+  storageBucket: "todolist-9bab9.firebasestorage.app",
+  messagingSenderId: "209518858392",
+  appId: "1:209518858392:web:5043be46f619d0251c40ed"
 };
-
-function parseFirebaseConfig(raw) {
-  // Try plain JSON first
-  try { return JSON.parse(raw); } catch(e) {}
-  // Accept JS object syntax: extract the { ... } block, then quote bare keys
-  let s = raw;
-  // Remove "const firebaseConfig = " prefix and trailing ";"
-  s = s.replace(/^\s*const\s+\w+\s*=\s*/, '').replace(/;\s*$/, '').trim();
-  // Quote bare keys: word: -> "word":
-  s = s.replace(/([{,]\s*)([a-zA-Z_]\w*)(\s*:)/g, '$1"$2"$3');
-  // Replace single quotes with double quotes for values
-  s = s.replace(/:\s*'([^']*)'/g, ': "$1"');
-  try { return JSON.parse(s); } catch(e) {
-    throw new Error('Format non reconnu. Copiez uniquement le bloc { ... } affiché par Firebase.');
-  }
-}
-
-window.showConfig = function() { document.getElementById('configScreen').classList.add('show'); };
 
 async function bootApp(cfg) {
   setSyncState('loading', 'Connexion…');
@@ -366,7 +330,6 @@ async function bootApp(cfg) {
     const app = initializeApp(cfg);
     db = getFirestore(app);
     auth = getAuth(app);
-    document.getElementById('configScreen').classList.remove('show');
     setSyncState('ok', 'Connecté');
     // Watch auth state
     onAuthStateChanged(auth, user => {
@@ -382,9 +345,8 @@ async function bootApp(cfg) {
       }
     });
   } catch(e) {
-    setSyncState('err', 'Erreur');
-    document.getElementById('configError').textContent = '⚠️ ' + e.message;
-    document.getElementById('configScreen').classList.add('show');
+    setSyncState('err', 'Erreur connexion');
+    console.error('Firebase init error:', e.message);
   }
 }
 
@@ -452,8 +414,7 @@ async function saveData() {
 }
 
 // Auto-reconnect
-const saved = localStorage.getItem('fbConfig');
-if (saved) { document.getElementById('fbConfigInput').value = saved; try { bootApp(JSON.parse(saved)); } catch(e){} }
+
 
 // ── DEFAULTS ──────────────────────────────────────────────────────────────────
 function defaultCategories() {
