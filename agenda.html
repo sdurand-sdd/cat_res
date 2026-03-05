@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Mon Agenda</title>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📅</text></svg>">
+<style>
+:root {
+  --bg: #faf8f5;
+  --paper: #ffffff;
+  --border: #e8e2d9;
+  --border2: #d4cdc3;
+  --text: #2c2825;
+  --text2: #7a7068;
+  --text3: #b0a89e;
+  --pink: #f9e4ec;
+  --pink-b: #e8a0bc;
+  --blue: #e0eef9;
+  --blue-b: #89b8dc;
+  --green: #e2f2e8;
+  --green-b: #8dc9a0;
+  --yellow: #fef6e0;
+  --yellow-b: #e8c96d;
+  --purple: #ede8f8;
+  --purple-b: #a98fd4;
+  --peach: #fde8dc;
+  --peach-b: #e8a07a;
+  --teal: #e0f4f2;
+  --teal-b: #7dc4bc;
+  --lavender: #ece8f8;
+  --lavender-b: #b4a8e0;
+  --accent: #d4517a;
+  --accent-b: #4a90c4;
+  --today-bg: #fff8e6;
+  --today-border: #e8c96d;
+  --shadow: 0 2px 12px rgba(0,0,0,0.07);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.12);
+  --radius: 12px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Outfit', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  font-size: 14px;
+}
+
+/* ── HEADER ── */
+.app-header {
+  background: var(--paper);
+  border-bottom: 2px solid var(--border);
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: var(--shadow);
+}
+
+.app-header h1 {
+  font-family: 'Caveat', cursive;
+  font-size: 1.6rem;
+  color: var(--accent);
+  letter-spacing: -0.5px;
+  line-height: 1;
+}
+
+.week-nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.week-label {
+  text-align: center;
+  min-width: 200px;
+}
+
+.week-label .week-dates {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.week-label .week-type {
+  font-family: 'Caveat', cursive;
+  font-size: 1.1rem;
+  font-weight: 700;
+  line-height: 1;
+}
+.week-type.A { color: var(--accent); }
+.week-type.B { color: var(--accent-b); }
+
+.nav-btn {
+  background: var(--bg);
+  border: 1.5px solid var(--border2);
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--text2);
+  transition: all 0.15s;
+}
+.nav-btn:hover { background: var(--border); color: var(--text); }
+.nav-btn.today-btn { color: var(--accent); border-color: var(--accent); background: #fdf0f5; }
+.nav-btn.today-btn:hover { background: var(--accent); color: white; }
+
+.sync-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--text3); transition: background 0.3s; flex-shrink: 0; }
+.sync-dot.ok { background: #6dbf8e; }
+.sync-dot.err { background: #e07070; }
+.sync-dot.loading { background: var(--yellow-b); animation: pulse 1s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+.logout-btn {
+  background: none;
+  border: 1.5px solid var(--border2);
+  border-radius: 8px;
+  padding: 5px 10px;
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text3);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.logout-btn:hover { color: var(--accent); border-color: var(--accent); }
+
+/* ── NOTES BAR ── */
+.notes-bar {
+  background: var(--yellow);
+  border-bottom: 1px solid var(--yellow-b);
+  padding: 6px 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.82rem;
+}
+.notes-bar label { font-weight: 700; color: var(--text2); white-space: nowrap; font-family: 'Caveat', cursive; font-size: 1rem; }
+.notes-bar input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-family: inherit;
+  font-size: 0.85rem;
+  color: var(--text);
+  font-style: italic;
+}
+.notes-bar input::placeholder { color: var(--text3); }
+
+/* ── GRID ── */
+.grid-wrapper {
+  overflow-x: auto;
+  padding: 16px;
+  min-height: calc(100vh - 110px);
+}
+
+.week-grid {
+  display: grid;
+  grid-template-columns: 80px repeat(5, 1fr);
+  gap: 0;
+  min-width: 700px;
+  border: 1.5px solid var(--border2);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--border);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Header row */
+.grid-header {
+  background: var(--paper);
+  padding: 8px 6px;
+  text-align: center;
+  font-weight: 700;
+  font-size: 0.82rem;
+  border-right: 1px solid var(--border);
+  border-bottom: 2px solid var(--border2);
+  color: var(--text2);
+  position: sticky;
+  top: 0;
+}
+.grid-header.day-header { color: var(--text); }
+.grid-header.day-header .day-name { font-size: 0.9rem; font-weight: 700; }
+.grid-header.day-header .day-num {
+  font-family: 'Caveat', cursive;
+  font-size: 1.3rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--text2);
+}
+.grid-header.day-header.is-today .day-num { color: var(--accent); }
+.grid-header.day-header.is-today { background: var(--today-bg); border-bottom-color: var(--today-border); }
+.grid-header:last-child { border-right: none; }
+
+/* Slot label column */
+.slot-label {
+  background: var(--bg);
+  padding: 6px 8px;
+  border-right: 2px solid var(--border2);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 2px;
+  min-height: 90px;
+}
+.slot-label .slot-class {
+  font-family: 'Caveat', cursive;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text2);
+  line-height: 1.2;
+}
+.slot-label .slot-time {
+  font-size: 0.68rem;
+  color: var(--text3);
+}
+
+/* Cell */
+.cell {
+  background: var(--paper);
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  padding: 4px;
+  min-height: 90px;
+  cursor: pointer;
+  transition: background 0.12s;
+  position: relative;
+  vertical-align: top;
+}
+.cell:last-child { border-right: none; }
+.cell:hover { background: #faf5ff; }
+.cell.is-today { background: var(--today-bg); }
+.cell.is-today:hover { background: #fff3d4; }
+
+/* Tags inside cell */
+.cell-tags { display: flex; flex-direction: column; gap: 3px; height: 100%; }
+
+.tag {
+  border-radius: 6px;
+  padding: 3px 6px;
+  font-size: 0.74rem;
+  font-weight: 600;
+  line-height: 1.3;
+  position: relative;
+  cursor: pointer;
+  transition: filter 0.1s;
+}
+.tag:hover { filter: brightness(0.93); }
+.tag .tag-del {
+  position: absolute;
+  top: 1px; right: 3px;
+  font-size: 0.65rem;
+  color: rgba(0,0,0,0.3);
+  cursor: pointer;
+  display: none;
+  line-height: 1;
+}
+.tag:hover .tag-del { display: block; }
+.tag .tag-del:hover { color: rgba(0,0,0,0.7); }
+
+.tag.cours    { background: var(--blue);   border-left: 3px solid var(--blue-b); color: #2a5580; }
+.tag.eval     { background: var(--pink);   border-left: 3px solid var(--pink-b); color: #7a2048; }
+.tag.reunion  { background: var(--purple); border-left: 3px solid var(--purple-b); color: #4a2d80; }
+.tag.tache    { background: var(--green);  border-left: 3px solid var(--green-b); color: #2a6040; }
+.tag.note     { background: var(--yellow); border-left: 3px solid var(--yellow-b); color: #6b5000; }
+
+.cell-add {
+  opacity: 0;
+  font-size: 0.72rem;
+  color: var(--text3);
+  text-align: center;
+  padding: 4px;
+  transition: opacity 0.15s;
+  margin-top: auto;
+}
+.cell:hover .cell-add { opacity: 1; }
+
+/* ── MODAL ── */
+.overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.35);
+  z-index: 200;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(2px);
+  padding: 20px;
+}
+.overlay.open { display: flex; }
+
+.modal {
+  background: var(--paper);
+  border-radius: 18px;
+  padding: 24px;
+  max-width: 420px;
+  width: 100%;
+  box-shadow: var(--shadow-lg);
+  animation: popIn 0.18s ease;
+}
+@keyframes popIn { from{transform:scale(0.94);opacity:0} to{transform:scale(1);opacity:1} }
+
+.modal-title {
+  font-family: 'Caveat', cursive;
+  font-size: 1.3rem;
+  color: var(--accent);
+  margin-bottom: 16px;
+}
+
+.type-selector {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+.type-btn {
+  border: 1.5px solid var(--border2);
+  border-radius: 20px;
+  padding: 5px 12px;
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  background: white;
+  color: var(--text2);
+  transition: all 0.15s;
+}
+.type-btn:hover { border-color: var(--text2); color: var(--text); }
+.type-btn.active.cours   { background: var(--blue);   border-color: var(--blue-b);   color: #2a5580; }
+.type-btn.active.eval    { background: var(--pink);   border-color: var(--pink-b);   color: #7a2048; }
+.type-btn.active.reunion { background: var(--purple); border-color: var(--purple-b); color: #4a2d80; }
+.type-btn.active.tache   { background: var(--green);  border-color: var(--green-b);  color: #2a6040; }
+.type-btn.active.note    { background: var(--yellow); border-color: var(--yellow-b); color: #6b5000; }
+
+.modal input, .modal textarea, .modal select {
+  width: 100%;
+  border: 1.5px solid var(--border2);
+  border-radius: 8px;
+  padding: 9px 12px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  color: var(--text);
+  background: var(--bg);
+  outline: none;
+  transition: border-color 0.2s;
+  margin-bottom: 10px;
+}
+.modal input:focus, .modal textarea:focus, .modal select:focus { border-color: var(--accent); }
+.modal textarea { min-height: 70px; resize: vertical; }
+.modal select option { background: white; }
+
+.modal-foot {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 6px;
+}
+.mbtn {
+  border: none;
+  border-radius: 8px;
+  padding: 9px 20px;
+  font-family: inherit;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.mbtn:hover { filter: brightness(1.07); transform: translateY(-1px); }
+.mbtn-accent { background: var(--accent); color: white; }
+.mbtn-cancel { background: var(--bg); color: var(--text2); border: 1.5px solid var(--border2); }
+
+/* ── LOGIN SCREEN ── */
+.fullscreen {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  z-index: 400;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+.fullscreen.show { display: flex; }
+
+.screen-box {
+  background: var(--paper);
+  border-radius: 20px;
+  padding: 36px 32px;
+  max-width: 380px;
+  width: 100%;
+  box-shadow: var(--shadow-lg);
+  border: 1.5px solid var(--border);
+}
+.screen-box h2 {
+  font-family: 'Caveat', cursive;
+  font-size: 2rem;
+  color: var(--accent);
+  margin-bottom: 4px;
+}
+.screen-box p { font-size: 0.85rem; color: var(--text2); margin-bottom: 24px; }
+.sfield { margin-bottom: 14px; }
+.sfield label { display: block; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text3); margin-bottom: 5px; }
+.sfield input { width: 100%; background: var(--bg); border: 1.5px solid var(--border2); border-radius: 10px; padding: 11px 14px; font-family: inherit; font-size: 0.9rem; color: var(--text); outline: none; transition: border-color 0.2s; }
+.sfield input:focus { border-color: var(--accent); }
+.screen-error { color: #e05c5c; font-size: 0.82rem; margin-bottom: 10px; min-height: 18px; font-weight: 600; }
+.screen-btn { width: 100%; background: var(--accent); color: white; border: none; border-radius: 10px; padding: 13px; font-family: inherit; font-size: 0.95rem; font-weight: 700; cursor: pointer; transition: all 0.15s; }
+.screen-btn:hover { filter: brightness(1.08); }
+.screen-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ── TOAST ── */
+.toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(60px); background: var(--text); color: white; border-radius: 10px; padding: 9px 18px; font-size: 0.84rem; font-weight: 600; z-index: 999; opacity: 0; transition: all 0.25s; pointer-events: none; }
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+@media (max-width: 750px) {
+  .app-header { flex-wrap: wrap; gap: 8px; padding: 10px 14px; }
+  .app-header h1 { font-size: 1.3rem; }
+  .week-nav { margin-left: 0; width: 100%; justify-content: space-between; }
+  .week-label { min-width: 0; flex: 1; }
+  .grid-wrapper { padding: 8px; }
+  .slot-label { min-height: 70px; }
+  .cell { min-height: 70px; }
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="fullscreen" id="loginScreen">
+  <div class="screen-box">
+    <h2>📅 Mon Agenda</h2>
+    <p>Connectez-vous pour accéder à votre planning</p>
+    <div class="sfield">
+      <label>Email</label>
+      <input type="email" id="loginEmail" placeholder="votre@email.com" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <div class="sfield">
+      <label>Mot de passe</label>
+      <input type="password" id="loginPwd" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <div class="screen-error" id="loginError"></div>
+    <button class="screen-btn" id="loginBtn" onclick="doLogin()">Se connecter</button>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app" style="display:none">
+  <div class="app-header">
+    <h1>📅 Mon Agenda</h1>
+    <div class="week-nav">
+      <button class="nav-btn" onclick="changeWeek(-1)">◀</button>
+      <div class="week-label">
+        <div class="week-dates" id="weekDates"></div>
+        <div class="week-type" id="weekType"></div>
+      </div>
+      <button class="nav-btn" onclick="changeWeek(1)">▶</button>
+      <button class="nav-btn today-btn" onclick="goToday()">Auj.</button>
+    </div>
+    <div class="sync-dot" id="syncDot"></div>
+    <button class="logout-btn" onclick="doLogout()">⎋ Déco</button>
+  </div>
+
+  <div class="notes-bar">
+    <label>Notes :</label>
+    <input type="text" id="weekNotes" placeholder="Réunion, CA, infos importantes pour cette semaine…" oninput="saveNotes()">
+  </div>
+
+  <div class="grid-wrapper">
+    <div class="week-grid" id="weekGrid"></div>
+  </div>
+</div>
+
+<!-- ADD EVENT MODAL -->
+<div class="overlay" id="addModal">
+  <div class="modal">
+    <div class="modal-title" id="modalTitle">Ajouter un événement</div>
+    <div class="type-selector">
+      <button class="type-btn active cours"   data-type="cours"   onclick="selectType('cours')">📘 Cours</button>
+      <button class="type-btn eval"            data-type="eval"    onclick="selectType('eval')">📝 Éval</button>
+      <button class="type-btn reunion"         data-type="reunion" onclick="selectType('reunion')">👥 Réunion</button>
+      <button class="type-btn tache"           data-type="tache"   onclick="selectType('tache')">✅ Tâche</button>
+      <button class="type-btn note"            data-type="note"    onclick="selectType('note')">💬 Note</button>
+    </div>
+    <input type="text" id="eventText" placeholder="Description…" onkeydown="if(event.key==='Enter')saveEvent()">
+    <div class="modal-foot">
+      <button class="mbtn mbtn-cancel" onclick="closeModal()">Annuler</button>
+      <button class="mbtn mbtn-accent" onclick="saveEvent()">Ajouter</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+// ── CONFIG ────────────────────────────────────────────────────────────────────
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyCy9ooNIoqpfH8uxzo3_YboWvTqkxAmDgI",
+  authDomain: "todolist-9bab9.firebaseapp.com",
+  projectId: "todolist-9bab9",
+  storageBucket: "todolist-9bab9.firebasestorage.app",
+  messagingSenderId: "209518858392",
+  appId: "1:209518858392:web:5043be46f619d0251c40ed"
+};
+
+// ── CLASSES & SLOTS ───────────────────────────────────────────────────────────
+const CLASSES = ['4°4','4°5','4°2','3°1','3°3','3°5','5°3','5°3G'];
+const DAYS = ['Lundi','Mardi','Mercredi','Jeudi','Vendredi'];
+const DAYS_SHORT = ['Lun','Mar','Mer','Jeu','Ven'];
+
+// ── STATE ─────────────────────────────────────────────────────────────────────
+let db = null, auth = null;
+let weekData = {};   // { 'YYYY-Www': { notes: '', cells: { 'slot-day': [{id,type,text}] } } }
+let currentWeekKey = '';
+let currentMonday = getMonday(new Date());
+let modalContext = null; // { slotIdx, dayIdx }
+let selectedType = 'cours';
+let saveTimer = null;
+
+// ── FIREBASE ──────────────────────────────────────────────────────────────────
+async function bootApp() {
+  try {
+    const app = initializeApp(FIREBASE_CONFIG);
+    db = getFirestore(app);
+    auth = getAuth(app);
+    onAuthStateChanged(auth, user => {
+      if (user) {
+        document.getElementById('loginScreen').classList.remove('show');
+        document.getElementById('app').style.display = '';
+        startListener();
+      } else {
+        document.getElementById('loginScreen').classList.add('show');
+        document.getElementById('app').style.display = 'none';
+        setSyncState('err');
+      }
+    });
+  } catch(e) {
+    console.error(e);
+    document.getElementById('loginError').textContent = '⚠️ Erreur Firebase : ' + e.message;
+    document.getElementById('loginScreen').classList.add('show');
+  }
+}
+
+function startListener() {
+  onSnapshot(doc(db, 'agenda', 'data'), snap => {
+    weekData = snap.exists() ? (snap.data().weeks || {}) : {};
+    renderWeek();
+    setSyncState('ok');
+  }, () => setSyncState('err'));
+}
+
+async function save() {
+  if (!db) return;
+  setSyncState('loading');
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(async () => {
+    try {
+      await setDoc(doc(db, 'agenda', 'data'), { weeks: weekData });
+      setSyncState('ok');
+    } catch(e) { setSyncState('err'); }
+  }, 600);
+}
+
+// ── WEEK LOGIC ────────────────────────────────────────────────────────────────
+function getMonday(date) {
+  const d = new Date(date);
+  const day = d.getDay();
+  const diff = (day === 0) ? -6 : 1 - day;
+  d.setDate(d.getDate() + diff);
+  d.setHours(0,0,0,0);
+  return d;
+}
+
+function weekKey(monday) {
+  const y = monday.getFullYear();
+  // ISO week number
+  const jan4 = new Date(y, 0, 4);
+  const w = Math.ceil(((monday - jan4) / 86400000 + jan4.getDay() + 1) / 7);
+  return `${y}-W${String(w).padStart(2,'0')}`;
+}
+
+function isWeekA(monday) {
+  // Semaine A = numéro de semaine impair
+  const y = monday.getFullYear();
+  const jan4 = new Date(y, 0, 4);
+  const w = Math.ceil(((monday - jan4) / 86400000 + jan4.getDay() + 1) / 7);
+  return w % 2 === 1;
+}
+
+function formatDateRange(monday) {
+  const friday = new Date(monday);
+  friday.setDate(monday.getDate() + 4);
+  const opts = { day: 'numeric', month: 'long' };
+  const optsY = { day: 'numeric', month: 'long', year: 'numeric' };
+  if (monday.getFullYear() === friday.getFullYear()) {
+    return `${monday.toLocaleDateString('fr-FR', opts)} – ${friday.toLocaleDateString('fr-FR', optsY)}`;
+  }
+  return `${monday.toLocaleDateString('fr-FR', optsY)} – ${friday.toLocaleDateString('fr-FR', optsY)}`;
+}
+
+function isToday(monday, dayIdx) {
+  const d = new Date(monday);
+  d.setDate(monday.getDate() + dayIdx);
+  const t = new Date();
+  return d.toDateString() === t.toDateString();
+}
+
+// ── RENDER ────────────────────────────────────────────────────────────────────
+function renderWeek() {
+  currentWeekKey = weekKey(currentMonday);
+  const wA = isWeekA(currentMonday);
+  const data = weekData[currentWeekKey] || { notes: '', cells: {} };
+
+  // Header info
+  document.getElementById('weekDates').textContent = formatDateRange(currentMonday);
+  const wtEl = document.getElementById('weekType');
+  wtEl.textContent = `Semaine ${wA ? 'A' : 'B'}`;
+  wtEl.className = `week-type ${wA ? 'A' : 'B'}`;
+
+  // Notes
+  document.getElementById('weekNotes').value = data.notes || '';
+
+  // Build grid
+  const grid = document.getElementById('weekGrid');
+  let html = '';
+
+  // Header row
+  html += `<div class="grid-header">Cours</div>`;
+  for (let d = 0; d < 5; d++) {
+    const date = new Date(currentMonday);
+    date.setDate(currentMonday.getDate() + d);
+    const todayCls = isToday(currentMonday, d) ? ' is-today' : '';
+    html += `<div class="grid-header day-header${todayCls}">
+      <div class="day-name">${DAYS_SHORT[d]}</div>
+      <div class="day-num">${date.getDate()}</div>
+    </div>`;
+  }
+
+  // Slot rows
+  CLASSES.forEach((cls, si) => {
+    // Label cell
+    html += `<div class="slot-label"><span class="slot-class">${cls}</span></div>`;
+
+    for (let d = 0; d < 5; d++) {
+      const cellKey = `${si}-${d}`;
+      const events = (data.cells && data.cells[cellKey]) || [];
+      const todayCls = isToday(currentMonday, d) ? ' is-today' : '';
+
+      html += `<div class="cell${todayCls}" onclick="openAddModal(${si},${d})">
+        <div class="cell-tags">`;
+
+      events.forEach(ev => {
+        html += `<div class="tag ${ev.type}" onclick="event.stopPropagation()">
+          ${esc(ev.text)}
+          <span class="tag-del" onclick="event.stopPropagation();deleteEvent('${cellKey}','${ev.id}')">✕</span>
+        </div>`;
+      });
+
+      html += `</div>
+        <div class="cell-add">+ ajouter</div>
+      </div>`;
+    }
+  });
+
+  grid.innerHTML = html;
+}
+
+// ── ACTIONS ───────────────────────────────────────────────────────────────────
+window.changeWeek = function(dir) {
+  currentMonday = new Date(currentMonday);
+  currentMonday.setDate(currentMonday.getDate() + dir * 7);
+  renderWeek();
+};
+
+window.goToday = function() {
+  currentMonday = getMonday(new Date());
+  renderWeek();
+};
+
+window.saveNotes = function() {
+  const val = document.getElementById('weekNotes').value;
+  if (!weekData[currentWeekKey]) weekData[currentWeekKey] = { notes: '', cells: {} };
+  weekData[currentWeekKey].notes = val;
+  save();
+};
+
+window.openAddModal = function(slotIdx, dayIdx) {
+  modalContext = { slotIdx, dayIdx };
+  const date = new Date(currentMonday);
+  date.setDate(currentMonday.getDate() + dayIdx);
+  document.getElementById('modalTitle').textContent =
+    `${CLASSES[slotIdx]} — ${DAYS[dayIdx]} ${date.getDate()}/${date.getMonth()+1}`;
+  document.getElementById('eventText').value = '';
+  selectType('cours');
+  document.getElementById('addModal').classList.add('open');
+  setTimeout(() => document.getElementById('eventText').focus(), 100);
+};
+
+window.closeModal = function() {
+  document.getElementById('addModal').classList.remove('open');
+  modalContext = null;
+};
+
+window.selectType = function(type) {
+  selectedType = type;
+  document.querySelectorAll('.type-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.type === type);
+  });
+};
+
+window.saveEvent = function() {
+  const text = document.getElementById('eventText').value.trim();
+  if (!text || !modalContext) return;
+  const { slotIdx, dayIdx } = modalContext;
+  const cellKey = `${slotIdx}-${dayIdx}`;
+  if (!weekData[currentWeekKey]) weekData[currentWeekKey] = { notes: '', cells: {} };
+  if (!weekData[currentWeekKey].cells) weekData[currentWeekKey].cells = {};
+  if (!weekData[currentWeekKey].cells[cellKey]) weekData[currentWeekKey].cells[cellKey] = [];
+  weekData[currentWeekKey].cells[cellKey].push({ id: uid(), type: selectedType, text });
+  closeModal();
+  save();
+};
+
+window.deleteEvent = function(cellKey, evId) {
+  if (!weekData[currentWeekKey]?.cells?.[cellKey]) return;
+  weekData[currentWeekKey].cells[cellKey] = weekData[currentWeekKey].cells[cellKey].filter(e => e.id !== evId);
+  save();
+};
+
+// ── AUTH ──────────────────────────────────────────────────────────────────────
+window.doLogin = async function() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const pwd = document.getElementById('loginPwd').value;
+  const errEl = document.getElementById('loginError');
+  const btn = document.getElementById('loginBtn');
+  errEl.textContent = '';
+  if (!email || !pwd) { errEl.textContent = 'Remplissez email et mot de passe'; return; }
+  if (!auth) { errEl.textContent = 'Initialisation en cours, réessayez…'; bootApp(); return; }
+  btn.disabled = true; btn.textContent = 'Connexion…';
+  try {
+    await signInWithEmailAndPassword(auth, email, pwd);
+  } catch(e) {
+    const msgs = {
+      'auth/invalid-credential': 'Email ou mot de passe incorrect',
+      'auth/invalid-email': 'Email invalide',
+      'auth/too-many-requests': 'Trop de tentatives, réessayez plus tard',
+      'auth/network-request-failed': 'Pas de connexion réseau',
+    };
+    errEl.textContent = msgs[e.code] || ('Erreur : ' + e.code);
+  } finally { btn.disabled = false; btn.textContent = 'Se connecter'; }
+};
+
+window.doLogout = async function() { if (auth) await signOut(auth); };
+
+// ── HELPERS ───────────────────────────────────────────────────────────────────
+function setSyncState(s) { document.getElementById('syncDot').className = 'sync-dot ' + s; }
+function uid() { return Math.random().toString(36).slice(2,10); }
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function toast(msg, dur=2200) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove('show'), dur);
+}
+
+// Close modal on overlay click
+document.getElementById('addModal').addEventListener('click', e => { if(e.target.id==='addModal') closeModal(); });
+
+bootApp();
+</script>
+</body>
+</html>
