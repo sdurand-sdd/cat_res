@@ -438,6 +438,42 @@ body {
 .cell.no-cours .cell-add { display: none; }
 .slot-label.no-cours-row { opacity: 0.5; }
 
+/* Daily notes row */
+.day-notes-row {
+  background: var(--yellow);
+  border-bottom: 2px solid var(--yellow-b);
+}
+.day-notes-cell {
+  border-right: 1px solid var(--border);
+  padding: 4px 6px;
+}
+.day-notes-cell:last-child { border-right: none; }
+.day-notes-label {
+  background: var(--bg);
+  border-right: 2px solid var(--border2);
+  padding: 4px 8px;
+  display: flex;
+  align-items: center;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--text3);
+  font-style: italic;
+}
+.day-notes-input {
+  width: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: inherit;
+  font-size: 0.78rem;
+  color: var(--text);
+  resize: none;
+  min-height: 28px;
+  line-height: 1.4;
+  padding: 2px 0;
+}
+.day-notes-input::placeholder { color: var(--text3); font-style: italic; }
+
 /* Config mode */
 .config-mode .cell {
   cursor: pointer !important;
@@ -456,8 +492,8 @@ body {
 /* Morning / afternoon separator — full row spanning all columns */
 .separator-row {
   grid-column: 1 / -1;
-  height: 0;
-  border-top: 3px solid var(--border2);
+  height: 6px;
+  background: var(--border2);
   margin: 0;
 }
 
@@ -902,7 +938,26 @@ function renderWeek() {
     }
   });
 
+  // Daily notes row
+  const dayNotes = (data.dayNotes) || {};
+  html += `<div class="day-notes-label">📝 Notes du jour</div>`;
+  for (let d = 0; d < 5; d++) {
+    const dateKey = getDayKey(currentMonday, d);
+    const noteVal = dayNotes[dateKey] || '';
+    html += `<div class="day-notes-cell day-notes-row">
+      <textarea class="day-notes-input" rows="2" placeholder="Notes…"
+        onchange="saveDayNote('${dateKey}', this.value)"
+        onclick="event.stopPropagation()">${esc(noteVal)}</textarea>
+    </div>`;
+  }
+
   grid.innerHTML = html;
+}
+
+function getDayKey(monday, dayIdx) {
+  const d = new Date(monday);
+  d.setDate(monday.getDate() + dayIdx);
+  return d.toISOString().slice(0,10);
 }
 
 // ── ACTIONS ───────────────────────────────────────────────────────────────────
@@ -1013,6 +1068,13 @@ window.onCellClick = function(event, slotIdx, dayIdx) {
   if (!edtConfig[weekType][cellKey]) {
     openAddModal(slotIdx, dayIdx);
   }
+};
+
+window.saveDayNote = function(dateKey, value) {
+  if (!weekData[currentWeekKey]) weekData[currentWeekKey] = { notes: '', cells: {}, dayNotes: {} };
+  if (!weekData[currentWeekKey].dayNotes) weekData[currentWeekKey].dayNotes = {};
+  weekData[currentWeekKey].dayNotes[dateKey] = value;
+  save();
 };
 
 window.doLogout = async function() { if (auth) await signOut(auth); };
