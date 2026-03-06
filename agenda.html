@@ -486,6 +486,23 @@ body {
 }
 
 /* ── TOAST ── */
+/* Settings */
+.settings-table { width: 100%; border-collapse: collapse; min-width: 500px; }
+.settings-table th { font-size: 0.76rem; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px; padding: 6px 8px; text-align: center; border-bottom: 2px solid var(--border2); }
+.settings-table th:first-child { text-align: left; }
+.settings-table td { padding: 4px 4px; border-bottom: 1px solid var(--border); }
+.settings-table select { width: 100%; border: 1.5px solid var(--border2); border-radius: 6px; padding: 5px 4px; font-family: inherit; font-size: 0.82rem; color: var(--text); background: var(--bg); outline: none; cursor: pointer; }
+.settings-table select:focus { border-color: var(--accent); }
+.class-row { display: flex; align-items: center; gap: 10px; padding: 6px 0; border-bottom: 1px solid var(--border); }
+.class-row:last-child { border-bottom: none; }
+.class-swatch { width: 22px; height: 22px; border-radius: 50%; flex-shrink: 0; border: 2px solid rgba(0,0,0,0.1); }
+.class-name-badge { font-weight: 700; font-size: 0.88rem; flex: 1; }
+.slot-row { display: flex; align-items: center; gap: 8px; padding: 5px 0; border-bottom: 1px solid var(--border); }
+.slot-row input { border: 1.5px solid var(--border2); border-radius: 6px; padding: 5px 8px; font-family: inherit; font-size: 0.85rem; outline: none; width: 70px; }
+.slot-row input:focus { border-color: var(--accent); }
+.del-btn { background: none; border: none; color: var(--text3); cursor: pointer; font-size: 1rem; padding: 2px 6px; border-radius: 5px; transition: all 0.12s; }
+.del-btn:hover { background: #fde8e8; color: var(--accent); }
+
 .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(60px); background: var(--text); color: white; border-radius: 10px; padding: 9px 18px; font-size: 0.84rem; font-weight: 600; z-index: 999; opacity: 0; transition: all 0.25s; pointer-events: none; }
 .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
@@ -535,7 +552,8 @@ body {
     </div>
     <div class="sync-dot" id="syncDot"></div>
     <button class="logout-btn" onclick="doLogout()">⎋ Déco</button>
-    <button class="logout-btn" onclick="toggleConfigMode()" id="configModeBtn" title="Configurer l'emploi du temps">✏️ EDT</button>
+    <button class="logout-btn" onclick="openSettings()" id="settingsBtn" title="Paramètres EDT">⚙️ EDT</button>
+    <button class="logout-btn" onclick="toggleConfigMode()" id="configModeBtn" title="Exceptions ponctuelles">✏️</button>
   </div>
 
   <div class="notes-bar">
@@ -572,6 +590,50 @@ body {
   </div>
 </div>
 
+<!-- SETTINGS SCREEN -->
+<div class="fullscreen" id="settingsScreen" style="overflow-y:auto;align-items:flex-start">
+  <div style="max-width:860px;width:100%;margin:auto;padding:24px 16px">
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:24px">
+      <h2 style="font-family:'Caveat',cursive;font-size:1.8rem;color:var(--accent);flex:1">⚙️ Paramètres EDT</h2>
+      <button class="nav-btn" onclick="closeSettings()">✕ Fermer</button>
+    </div>
+
+    <!-- Classes -->
+    <div style="background:white;border-radius:14px;padding:20px;margin-bottom:16px;border:1.5px solid var(--border);box-shadow:var(--shadow)">
+      <h3 style="font-family:'Caveat',cursive;font-size:1.3rem;color:var(--text2);margin-bottom:14px">📚 Mes classes</h3>
+      <div id="classesEditor"></div>
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <input type="text" id="newClassName" placeholder="Nouvelle classe (ex: 6°1)" style="flex:1;border:1.5px solid var(--border2);border-radius:8px;padding:8px 12px;font-family:inherit;font-size:0.88rem;outline:none">
+        <input type="color" id="newClassColor" value="#e8c0d0" style="width:44px;height:36px;border:1.5px solid var(--border2);border-radius:8px;padding:2px;cursor:pointer">
+        <button class="nav-btn" onclick="addClass()" style="background:var(--accent);color:white;border-color:var(--accent)">+ Ajouter</button>
+      </div>
+    </div>
+
+    <!-- EDT Semaine A -->
+    <div style="background:white;border-radius:14px;padding:20px;margin-bottom:16px;border:1.5px solid var(--border);box-shadow:var(--shadow)">
+      <h3 style="font-family:'Caveat',cursive;font-size:1.3rem;color:var(--accent);margin-bottom:14px">Semaine A</h3>
+      <div id="edtEditorA" style="overflow-x:auto"></div>
+    </div>
+
+    <!-- EDT Semaine B -->
+    <div style="background:white;border-radius:14px;padding:20px;margin-bottom:16px;border:1.5px solid var(--border);box-shadow:var(--shadow)">
+      <h3 style="font-family:'Caveat',cursive;font-size:1.3rem;color:var(--accent-b);margin-bottom:14px">Semaine B</h3>
+      <div id="edtEditorB" style="overflow-x:auto"></div>
+    </div>
+
+    <!-- Slots -->
+    <div style="background:white;border-radius:14px;padding:20px;margin-bottom:16px;border:1.5px solid var(--border);box-shadow:var(--shadow)">
+      <h3 style="font-family:'Caveat',cursive;font-size:1.3rem;color:var(--text2);margin-bottom:14px">⏰ Créneaux horaires</h3>
+      <div id="slotsEditor"></div>
+      <button class="nav-btn" onclick="addSlot()" style="margin-top:10px">+ Ajouter un créneau</button>
+    </div>
+
+    <div style="text-align:center;padding-bottom:20px">
+      <button class="mbtn mbtn-accent" style="padding:12px 40px;font-size:1rem" onclick="saveSettings()">💾 Enregistrer et fermer</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script type="module">
@@ -592,10 +654,10 @@ const FIREBASE_CONFIG = {
 // ── EMPLOI DU TEMPS ──────────────────────────────────────────────────────────
 const DAYS = ['Lundi','Mardi','Mercredi','Jeudi','Vendredi'];
 const DAYS_SHORT = ['Lun','Mar','Mer','Jeu','Ven'];
-const SLOTS = ['M1','M2','M3','M4','S1','S2','S3','S4'];
+// Dynamic EDT — loaded from Firebase, defaults below
+let SLOTS = ['M1','M2','M3','M4','S1','S2','S3','S4'];
 
-// EDT réel : pour chaque semaine (A/B), chaque créneau (M1..S4), la classe par jour (0=Lun..4=Ven) ou null
-const EDT = {
+let EDT = {
   A: {
     M1: ['4°4',  '4°5',  '4°5',  null,   null  ],
     M2: ['3°1',  '3°1',  null,   null,   null  ],
@@ -617,6 +679,34 @@ const EDT = {
     S4: ['3°3',  null,   null,   null,   null  ],
   }
 };
+
+// Classes with colors — loaded from Firebase
+let CLASS_LIST = [
+  { name: '4°4',  color: '#fde8f0' },
+  { name: '4°5',  color: '#fef0e0' },
+  { name: '4°2',  color: '#fefbe0' },
+  { name: '3°1',  color: '#e8f6ee' },
+  { name: '3°3',  color: '#e0f0fb' },
+  { name: '3°5',  color: '#f0eafb' },
+  { name: '5°3',  color: '#fde8e4' },
+  { name: '5°3G', color: '#fde8e4' },
+];
+
+function getClassColor(name) {
+  const c = CLASS_LIST.find(cl => cl.name === name);
+  if (!c) return null;
+  const hex = c.color;
+  // derive border (darker) and text (much darker)
+  return { bg: hex, border: darken(hex, 0.25), text: darken(hex, 0.55) };
+}
+
+function darken(hex, amount) {
+  const r = parseInt(hex.slice(1,3),16);
+  const g = parseInt(hex.slice(3,5),16);
+  const b = parseInt(hex.slice(5,7),16);
+  const d = v => Math.max(0, Math.round(v * (1 - amount)));
+  return `rgb(${d(r)},${d(g)},${d(b)})`;
+}
 
 // ── STATE ─────────────────────────────────────────────────────────────────────
 let db = null, auth = null;
@@ -660,6 +750,9 @@ function startListener() {
     edtConfig = d.edt || { A: {}, B: {} };
     if (!edtConfig.A) edtConfig.A = {};
     if (!edtConfig.B) edtConfig.B = {};
+    if (d.slots) SLOTS = d.slots;
+    if (d.edt_grid) EDT = d.edt_grid;
+    if (d.classes) CLASS_LIST = d.classes;
     renderWeek();
     setSyncState('ok');
   }, () => setSyncState('err'));
@@ -673,7 +766,7 @@ async function save() {
   clearTimeout(saveTimer);
   saveTimer = setTimeout(async () => {
     try {
-      await setDoc(doc(db, 'agenda', 'data'), { weeks: weekData, edt: edtConfig });
+      await setDoc(doc(db, 'agenda', 'data'), { weeks: weekData, edt: edtConfig, slots: SLOTS, edt_grid: EDT, classes: CLASS_LIST });
       setSyncState('ok');
     } catch(e) { setSyncState('err'); }
   }, 600);
@@ -774,17 +867,7 @@ function renderWeek() {
       const noCoursCls = isNoCours ? ' no-cours' : '';
       const todayClsD = isToday(currentMonday, d) ? ' is-today' : '';
       const clickHandler = `onCellClick(event,${si},${d})`;
-      const CLASS_COLORS = {
-        '4°4':  { bg: 'var(--c-4d4-bg)',  border: 'var(--c-4d4-b)',  text: '#7a2048' },
-        '4°5':  { bg: 'var(--c-4d5-bg)',  border: 'var(--c-4d5-b)',  text: '#7a4010' },
-        '4°2':  { bg: 'var(--c-4d2-bg)',  border: 'var(--c-4d2-b)',  text: '#5a5000' },
-        '3°1':  { bg: 'var(--c-3d1-bg)',  border: 'var(--c-3d1-b)',  text: '#1a5a38' },
-        '3°3':  { bg: 'var(--c-3d3-bg)',  border: 'var(--c-3d3-b)',  text: '#0a3a6a' },
-        '3°5':  { bg: 'var(--c-3d5-bg)',  border: 'var(--c-3d5-b)',  text: '#4a1a7a' },
-        '5°3':  { bg: 'var(--c-5d3-bg)',  border: 'var(--c-5d3-b)',  text: '#7a2818' },
-        '5°3G': { bg: 'var(--c-5d3g-bg)', border: 'var(--c-5d3g-b)', text: '#7a2818' },
-      };
-      const cc = baseClass && CLASS_COLORS[baseClass];
+      const cc = baseClass && getClassColor(baseClass);
       const cellStyle = cc ? `style="background:${cc.bg};border-top:3px solid ${cc.border}"` : '';
       const classLabel = baseClass
         ? `<span style="font-size:0.78rem;font-weight:800;color:${cc ? cc.text : 'var(--accent-b)'};display:block;margin-bottom:3px">${baseClass}</span>`
@@ -936,6 +1019,151 @@ function toast(msg, dur=2200) {
 
 // Close modal on overlay click
 document.getElementById('addModal').addEventListener('click', e => { if(e.target.id==='addModal') closeModal(); });
+
+// ── SETTINGS ──────────────────────────────────────────────────────────────────
+let settingsEDT = null; // working copy while editing
+
+window.openSettings = function() {
+  // Deep copy for editing
+  settingsEDT = {
+    slots: [...SLOTS],
+    classes: CLASS_LIST.map(c => ({...c})),
+    A: {}, B: {}
+  };
+  SLOTS.forEach(s => {
+    settingsEDT.A[s] = [...(EDT.A[s] || [null,null,null,null,null])];
+    settingsEDT.B[s] = [...(EDT.B[s] || [null,null,null,null,null])];
+  });
+  renderSettingsClasses();
+  renderSettingsEDT('A');
+  renderSettingsEDT('B');
+  renderSettingsSlots();
+  document.getElementById('settingsScreen').classList.add('show');
+};
+
+window.closeSettings = function() {
+  document.getElementById('settingsScreen').classList.remove('show');
+};
+
+window.saveSettings = function() {
+  // Apply working copy to live data
+  SLOTS = settingsEDT.slots;
+  EDT.A = {}; EDT.B = {};
+  SLOTS.forEach(s => {
+    EDT.A[s] = settingsEDT.A[s] || [null,null,null,null,null];
+    EDT.B[s] = settingsEDT.B[s] || [null,null,null,null,null];
+  });
+  CLASS_LIST = settingsEDT.classes;
+  closeSettings();
+  save();
+  renderWeek();
+  toast('EDT enregistré ✓');
+};
+
+function renderSettingsClasses() {
+  const el = document.getElementById('classesEditor');
+  el.innerHTML = settingsEDT.classes.map((c, i) => `
+    <div class="class-row">
+      <div class="class-swatch" style="background:${c.color}"></div>
+      <span class="class-name-badge">${esc(c.name)}</span>
+      <input type="color" value="${c.color}" onchange="settingsEDT.classes[${i}].color=this.value;renderSettingsEDT('A');renderSettingsEDT('B')"
+        style="width:36px;height:28px;border:1.5px solid var(--border2);border-radius:6px;padding:2px;cursor:pointer">
+      <button class="del-btn" onclick="delClass(${i})">✕</button>
+    </div>`).join('');
+}
+
+window.addClass = function() {
+  const name = document.getElementById('newClassName').value.trim();
+  const color = document.getElementById('newClassColor').value;
+  if (!name) return;
+  if (settingsEDT.classes.find(c => c.name === name)) { toast('Classe déjà existante'); return; }
+  settingsEDT.classes.push({ name, color });
+  // Add empty column to all slots
+  settingsEDT.slots.forEach(s => {
+    settingsEDT.A[s] = settingsEDT.A[s] || [null,null,null,null,null];
+    settingsEDT.B[s] = settingsEDT.B[s] || [null,null,null,null,null];
+  });
+  document.getElementById('newClassName').value = '';
+  renderSettingsClasses();
+  renderSettingsEDT('A');
+  renderSettingsEDT('B');
+};
+
+window.delClass = function(i) {
+  const name = settingsEDT.classes[i].name;
+  if (!confirm(`Supprimer la classe "${name}" ? Elle sera retirée de l'EDT.`)) return;
+  settingsEDT.classes.splice(i, 1);
+  // Remove from EDT grids
+  settingsEDT.slots.forEach(s => {
+    ['A','B'].forEach(w => {
+      settingsEDT[w][s] = settingsEDT[w][s].map(v => v === name ? null : v);
+    });
+  });
+  renderSettingsClasses();
+  renderSettingsEDT('A');
+  renderSettingsEDT('B');
+};
+
+function renderSettingsEDT(week) {
+  const el = document.getElementById('edtEditor' + week);
+  const classes = settingsEDT.classes;
+  const slots = settingsEDT.slots;
+  const days = ['Lun','Mar','Mer','Jeu','Ven'];
+
+  let html = `<table class="settings-table"><thead><tr>
+    <th>Créneau</th>${days.map(d => `<th>${d}</th>`).join('')}
+  </tr></thead><tbody>`;
+
+  slots.forEach((slot, si) => {
+    html += `<tr><td style="font-weight:700;font-size:0.85rem;color:var(--text2);padding:4px 8px">${slot}</td>`;
+    for (let d = 0; d < 5; d++) {
+      const val = settingsEDT[week][slot] ? settingsEDT[week][slot][d] : null;
+      const bgColor = val ? (classes.find(c=>c.name===val)?.color || 'white') : 'white';
+      html += `<td>
+        <select onchange="settingsEDT['${week}']['${slot}'][${d}]=this.value||null;this.parentElement.style.background=this.value?(settingsEDT.classes.find(c=>c.name===this.value)?.color||'white'):'white'"
+          style="background:${bgColor}">
+          <option value="">—</option>
+          ${classes.map(c => `<option value="${esc(c.name)}" ${val===c.name?'selected':''}>${esc(c.name)}</option>`).join('')}
+        </select>
+      </td>`;
+    }
+    html += '</tr>';
+  });
+
+  html += '</tbody></table>';
+  el.innerHTML = html;
+}
+
+function renderSettingsSlots() {
+  const el = document.getElementById('slotsEditor');
+  el.innerHTML = settingsEDT.slots.map((s, i) => `
+    <div class="slot-row">
+      <input type="text" value="${esc(s)}" onchange="settingsEDT.slots[${i}]=this.value;renderSettingsEDT('A');renderSettingsEDT('B')" placeholder="ex: M1">
+      <span style="font-size:0.78rem;color:var(--text3)">(nom du créneau)</span>
+      <button class="del-btn" onclick="delSlot(${i})">✕</button>
+    </div>`).join('');
+}
+
+window.addSlot = function() {
+  const name = `S${settingsEDT.slots.length - 3}`;
+  settingsEDT.slots.push(name);
+  settingsEDT.A[name] = [null,null,null,null,null];
+  settingsEDT.B[name] = [null,null,null,null,null];
+  renderSettingsSlots();
+  renderSettingsEDT('A');
+  renderSettingsEDT('B');
+};
+
+window.delSlot = function(i) {
+  const name = settingsEDT.slots[i];
+  if (!confirm(`Supprimer le créneau "${name}" ?`)) return;
+  settingsEDT.slots.splice(i, 1);
+  delete settingsEDT.A[name];
+  delete settingsEDT.B[name];
+  renderSettingsSlots();
+  renderSettingsEDT('A');
+  renderSettingsEDT('B');
+};
 
 bootApp();
 </script>
