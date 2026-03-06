@@ -798,7 +798,15 @@ function startListener() {
     if (!edtConfig.A) edtConfig.A = {};
     if (!edtConfig.B) edtConfig.B = {};
     if (d.slots) SLOTS = d.slots;
-    if (d.edt_grid) EDT = d.edt_grid;
+    if (d.edt_grid) {
+      // Merge to preserve structure
+      EDT = d.edt_grid;
+      // Ensure all slots exist in EDT
+      ['A','B'].forEach(w => {
+        if (!EDT[w]) EDT[w] = {};
+        SLOTS.forEach(s => { if (!EDT[w][s]) EDT[w][s] = [null,null,null,null,null]; });
+      });
+    }
     if (d.classes) CLASS_LIST = d.classes;
     renderWeek();
     setSyncState('ok');
@@ -896,21 +904,19 @@ function renderWeek() {
 
   // Slot rows — based on real EDT
   const weekType = wA ? 'A' : 'B';
-  // Find which slots are visible
-  const visibleSlots = SLOTS.filter((slot, si) => {
-    const rowClasses = (EDT[weekType] && EDT[weekType][slot]) || [null,null,null,null,null];
-    return rowClasses.some(c => c !== null) ||
-      [0,1,2,3,4].some(d => edtConfig[weekType] && edtConfig[weekType][si+'-'+d] === false);
-  });
-  // Find last morning slot (M prefix) among visible
-  const morningSlots = visibleSlots.filter(s => s.startsWith('M'));
+  // Find last morning slot (M prefix) — used for separator
+  const morningSlots = SLOTS.filter(s => s.startsWith('M'));
   const lastMorningSlot = morningSlots.length > 0 ? morningSlots[morningSlots.length - 1] : null;
 
   SLOTS.forEach((slot, si) => {
     const rowClasses = (EDT[weekType] && EDT[weekType][slot]) || [null,null,null,null,null];
-    const rowHasAnything = rowClasses.some(c => c !== null) ||
-      [0,1,2,3,4].some(d => edtConfig[weekType] && edtConfig[weekType][si+'-'+d] === false);
-    if (!rowHasAnything) return;
+    // Show row if it has at least one class assigned, OR if it has events saved
+    const rowHasClass = rowClasses.some(c => c !== null);
+    const rowHasEvents = [0,1,2,3,4].some(d => {
+      const ck = `${si}-${d}`;
+      return (data.cells && data.cells[ck] && data.cells[ck].length > 0);
+    });
+    if (!rowHasClass && !rowHasEvents) return;
 
     const isLastMorning = (slot === lastMorningSlot);
     const labelSepCls = isLastMorning ? ' last-morning' : '';
@@ -920,8 +926,10 @@ function renderWeek() {
       const cellKey = `${si}-${d}`;
       const events = (data.cells && data.cells[cellKey]) || [];
       const baseClass = EDT[weekType][slot][d];
-      const override = edtConfig[weekType][cellKey];
-      const isNoCours = override === true || (baseClass === null && override !== false);
+      const override = edtConfig[weekType] ? edtConfig[weekType][cellKey] : undefined;
+      // A cell is "no cours" only if explicitly greyed via config mode (override===true)
+      // A null baseClass is still clickable/usable
+      const isNoCours = override === true;
       const noCoursCls = isNoCours ? ' no-cours' : '';
       const todayClsD = isToday(currentMonday, d) ? ' is-today' : '';
       const clickHandler = `onCellClick(event,${si},${d})`;
