@@ -431,12 +431,11 @@ body {
 
 /* ── GREYED CELLS ── */
 .cell.no-cours {
-  background: #f0ede8 !important;
+  background: white !important;
   cursor: default;
 }
-.cell.no-cours:hover { background: #ebe7e1 !important; }
+.cell.no-cours:hover { background: #fafafa !important; }
 .cell.no-cours .cell-add { display: none; }
-.cell.no-cours .cell-tags { opacity: 0.3; }
 .slot-label.no-cours-row { opacity: 0.5; }
 
 /* Config mode */
@@ -454,6 +453,12 @@ body {
 .config-mode .cell:hover::after {
   background: rgba(212,81,122,0.12);
 }
+/* Morning / afternoon separator */
+.slot-label.separator-top,
+.cell.separator-top {
+  border-top: 3px solid var(--border2) !important;
+}
+
 .config-mode .cell.no-cours::after {
   background: rgba(0,0,0,0.04);
 }
@@ -856,7 +861,8 @@ function renderWeek() {
       [0,1,2,3,4].some(d => edtConfig[weekType][si+'-'+d] === false);
     if (!rowHasAnything) return;
 
-    html += `<div class="slot-label"><span class="slot-class">${slot}</span></div>`;
+    const labelSepCls = (slot === 'S1') ? ' separator-top' : '';
+    html += `<div class="slot-label${labelSepCls}"><span class="slot-class">${slot}</span></div>`;
 
     for (let d = 0; d < 5; d++) {
       const cellKey = `${si}-${d}`;
@@ -873,7 +879,8 @@ function renderWeek() {
         ? `<span style="font-size:0.78rem;font-weight:800;color:${cc ? cc.text : 'var(--accent-b)'};display:block;margin-bottom:3px">${baseClass}</span>`
         : '';
 
-      html += `<div class="cell${todayClsD}${noCoursCls}" ${!isNoCours && cc ? cellStyle : ''} onclick="${clickHandler}">
+      const separatorCls = (slot === 'S1') ? ' separator-top' : '';
+      html += `<div class="cell${todayClsD}${noCoursCls}${separatorCls}" ${!isNoCours && cc ? cellStyle : ''} onclick="${clickHandler}">
         <div class="cell-tags">`;
 
       if (!isNoCours) {
