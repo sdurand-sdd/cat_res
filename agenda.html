@@ -35,6 +35,15 @@
   --accent: #d4517a;
   --accent-b: #4a90c4;
   --today-bg: #fff8e6;
+  /* Couleurs par classe */
+  --c-4d4-bg: #fde8f0; --c-4d4-b: #e8a0bc;
+  --c-4d5-bg: #fef0e0; --c-4d5-b: #e8a878;
+  --c-4d2-bg: #fefbe0; --c-4d2-b: #d4c050;
+  --c-3d1-bg: #e8f6ee; --c-3d1-b: #7dc4a0;
+  --c-3d3-bg: #e0f0fb; --c-3d3-b: #80bce8;
+  --c-3d5-bg: #f0eafb; --c-3d5-b: #b090d8;
+  --c-5d3-bg: #fde8e4; --c-5d3-b: #e89080;
+  --c-5d3g-bg: #fde8e4; --c-5d3g-b: #e89080;
   --today-border: #e8c96d;
   --shadow: 0 2px 12px rgba(0,0,0,0.07);
   --shadow-lg: 0 8px 32px rgba(0,0,0,0.12);
@@ -765,11 +774,23 @@ function renderWeek() {
       const noCoursCls = isNoCours ? ' no-cours' : '';
       const todayClsD = isToday(currentMonday, d) ? ' is-today' : '';
       const clickHandler = `onCellClick(event,${si},${d})`;
+      const CLASS_COLORS = {
+        '4°4':  { bg: 'var(--c-4d4-bg)',  border: 'var(--c-4d4-b)',  text: '#7a2048' },
+        '4°5':  { bg: 'var(--c-4d5-bg)',  border: 'var(--c-4d5-b)',  text: '#7a4010' },
+        '4°2':  { bg: 'var(--c-4d2-bg)',  border: 'var(--c-4d2-b)',  text: '#5a5000' },
+        '3°1':  { bg: 'var(--c-3d1-bg)',  border: 'var(--c-3d1-b)',  text: '#1a5a38' },
+        '3°3':  { bg: 'var(--c-3d3-bg)',  border: 'var(--c-3d3-b)',  text: '#0a3a6a' },
+        '3°5':  { bg: 'var(--c-3d5-bg)',  border: 'var(--c-3d5-b)',  text: '#4a1a7a' },
+        '5°3':  { bg: 'var(--c-5d3-bg)',  border: 'var(--c-5d3-b)',  text: '#7a2818' },
+        '5°3G': { bg: 'var(--c-5d3g-bg)', border: 'var(--c-5d3g-b)', text: '#7a2818' },
+      };
+      const cc = baseClass && CLASS_COLORS[baseClass];
+      const cellStyle = cc ? `style="background:${cc.bg};border-top:3px solid ${cc.border}"` : '';
       const classLabel = baseClass
-        ? `<span style="font-size:0.75rem;font-weight:800;color:var(--accent-b);display:block;margin-bottom:2px">${baseClass}</span>`
+        ? `<span style="font-size:0.78rem;font-weight:800;color:${cc ? cc.text : 'var(--accent-b)'};display:block;margin-bottom:3px">${baseClass}</span>`
         : '';
 
-      html += `<div class="cell${todayClsD}${noCoursCls}" onclick="${clickHandler}">
+      html += `<div class="cell${todayClsD}${noCoursCls}" ${!isNoCours && cc ? cellStyle : ''} onclick="${clickHandler}">
         <div class="cell-tags">`;
 
       if (!isNoCours) {
