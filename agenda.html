@@ -491,10 +491,14 @@ body {
 }
 /* Morning / afternoon separator — full row spanning all columns */
 .separator-row {
-  grid-column: 1 / -1;
-  height: 6px;
-  background: var(--border2);
-  margin: 0;
+  display: none; /* not used anymore */
+}
+/* Thick border BELOW the last morning slot row */
+.cell.last-morning {
+  border-bottom: 4px solid var(--border2) !important;
+}
+.slot-label.last-morning {
+  border-bottom: 4px solid var(--border2) !important;
 }
 
 .config-mode .cell.no-cours::after {
@@ -892,17 +896,25 @@ function renderWeek() {
 
   // Slot rows — based on real EDT
   const weekType = wA ? 'A' : 'B';
+  // Find which slots are visible
+  const visibleSlots = SLOTS.filter((slot, si) => {
+    const rowClasses = (EDT[weekType] && EDT[weekType][slot]) || [null,null,null,null,null];
+    return rowClasses.some(c => c !== null) ||
+      [0,1,2,3,4].some(d => edtConfig[weekType] && edtConfig[weekType][si+'-'+d] === false);
+  });
+  // Find last morning slot (M prefix) among visible
+  const morningSlots = visibleSlots.filter(s => s.startsWith('M'));
+  const lastMorningSlot = morningSlots.length > 0 ? morningSlots[morningSlots.length - 1] : null;
+
   SLOTS.forEach((slot, si) => {
-    const rowClasses = EDT[weekType][slot];
-    // Skip row if all days are null and no manual override forcing active
+    const rowClasses = (EDT[weekType] && EDT[weekType][slot]) || [null,null,null,null,null];
     const rowHasAnything = rowClasses.some(c => c !== null) ||
-      [0,1,2,3,4].some(d => edtConfig[weekType][si+'-'+d] === false);
+      [0,1,2,3,4].some(d => edtConfig[weekType] && edtConfig[weekType][si+'-'+d] === false);
     if (!rowHasAnything) return;
 
-    // Full-width separator between morning (M4) and afternoon (S1)
-    if (slot === 'S1') html += `<div class="separator-row"></div>`;
-
-    html += `<div class="slot-label"><span class="slot-class">${slot}</span></div>`;
+    const isLastMorning = (slot === lastMorningSlot);
+    const labelSepCls = isLastMorning ? ' last-morning' : '';
+    html += `<div class="slot-label${labelSepCls}"><span class="slot-class">${slot}</span></div>`;
 
     for (let d = 0; d < 5; d++) {
       const cellKey = `${si}-${d}`;
@@ -919,7 +931,8 @@ function renderWeek() {
         ? `<span style="font-size:0.78rem;font-weight:800;color:${cc ? cc.text : 'var(--accent-b)'};display:block;margin-bottom:3px">${baseClass}</span>`
         : '';
 
-      html += `<div class="cell${todayClsD}${noCoursCls}" ${!isNoCours && cc ? cellStyle : ''} onclick="${clickHandler}">
+      const cellSepCls = isLastMorning ? ' last-morning' : '';
+      html += `<div class="cell${todayClsD}${noCoursCls}${cellSepCls}" ${!isNoCours && cc ? cellStyle : ''} onclick="${clickHandler}">
         <div class="cell-tags">`;
 
       if (!isNoCours) {
