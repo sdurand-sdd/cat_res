@@ -453,10 +453,12 @@ body {
 .config-mode .cell:hover::after {
   background: rgba(212,81,122,0.12);
 }
-/* Morning / afternoon separator */
-.slot-label.separator-top,
-.cell.separator-top {
-  border-top: 3px solid var(--border2) !important;
+/* Morning / afternoon separator — full row spanning all columns */
+.separator-row {
+  grid-column: 1 / -1;
+  height: 0;
+  border-top: 3px solid var(--border2);
+  margin: 0;
 }
 
 .config-mode .cell.no-cours::after {
@@ -861,8 +863,10 @@ function renderWeek() {
       [0,1,2,3,4].some(d => edtConfig[weekType][si+'-'+d] === false);
     if (!rowHasAnything) return;
 
-    const labelSepCls = (slot === 'S1') ? ' separator-top' : '';
-    html += `<div class="slot-label${labelSepCls}"><span class="slot-class">${slot}</span></div>`;
+    // Full-width separator between morning (M4) and afternoon (S1)
+    if (slot === 'S1') html += `<div class="separator-row"></div>`;
+
+    html += `<div class="slot-label"><span class="slot-class">${slot}</span></div>`;
 
     for (let d = 0; d < 5; d++) {
       const cellKey = `${si}-${d}`;
@@ -879,8 +883,7 @@ function renderWeek() {
         ? `<span style="font-size:0.78rem;font-weight:800;color:${cc ? cc.text : 'var(--accent-b)'};display:block;margin-bottom:3px">${baseClass}</span>`
         : '';
 
-      const separatorCls = (slot === 'S1') ? ' separator-top' : '';
-      html += `<div class="cell${todayClsD}${noCoursCls}${separatorCls}" ${!isNoCours && cc ? cellStyle : ''} onclick="${clickHandler}">
+      html += `<div class="cell${todayClsD}${noCoursCls}" ${!isNoCours && cc ? cellStyle : ''} onclick="${clickHandler}">
         <div class="cell-tags">`;
 
       if (!isNoCours) {
