@@ -420,6 +420,62 @@ body {
 .screen-btn:hover { filter: brightness(1.08); }
 .screen-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
+/* ── GREYED CELLS ── */
+.cell.no-cours {
+  background: #f0ede8 !important;
+  cursor: default;
+}
+.cell.no-cours:hover { background: #ebe7e1 !important; }
+.cell.no-cours .cell-add { display: none; }
+.cell.no-cours .cell-tags { opacity: 0.3; }
+.slot-label.no-cours-row { opacity: 0.5; }
+
+/* Config mode */
+.config-mode .cell {
+  cursor: pointer !important;
+  position: relative;
+}
+.config-mode .cell::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 0;
+  transition: background 0.1s;
+}
+.config-mode .cell:hover::after {
+  background: rgba(212,81,122,0.12);
+}
+.config-mode .cell.no-cours::after {
+  background: rgba(0,0,0,0.04);
+}
+.config-mode .cell.no-cours:hover::after {
+  background: rgba(61,153,112,0.12);
+}
+.config-mode-bar {
+  display: none;
+  background: #fff3f7;
+  border-bottom: 2px solid var(--pink-b);
+  padding: 8px 20px;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--accent);
+}
+.config-mode-bar.show { display: flex; }
+.config-mode-bar span { flex: 1; }
+.config-done-btn {
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 6px 16px;
+  font-family: inherit;
+  font-size: 0.84rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
 /* ── TOAST ── */
 .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(60px); background: var(--text); color: white; border-radius: 10px; padding: 9px 18px; font-size: 0.84rem; font-weight: 600; z-index: 999; opacity: 0; transition: all 0.25s; pointer-events: none; }
 .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
@@ -470,11 +526,17 @@ body {
     </div>
     <div class="sync-dot" id="syncDot"></div>
     <button class="logout-btn" onclick="doLogout()">⎋ Déco</button>
+    <button class="logout-btn" onclick="toggleConfigMode()" id="configModeBtn" title="Configurer l'emploi du temps">✏️ EDT</button>
   </div>
 
   <div class="notes-bar">
     <label>Notes :</label>
     <input type="text" id="weekNotes" placeholder="Réunion, CA, infos importantes pour cette semaine…" oninput="saveNotes()">
+  </div>
+
+  <div class="config-mode-bar" id="configModeBar">
+    <span>✏️ Mode configuration — cliquez sur une case pour la griser (pas de cours) ou la réactiver</span>
+    <button class="config-done-btn" onclick="toggleConfigMode()">✓ Terminé</button>
   </div>
 
   <div class="grid-wrapper">
@@ -531,6 +593,8 @@ let currentMonday = getMonday(new Date());
 let modalContext = null; // { slotIdx, dayIdx }
 let selectedType = 'cours';
 let saveTimer = null;
+let configMode = false;
+// EDT config stored per week type: { A: { '0-1': true, ... }, B: { ... } }
 
 // ── FIREBASE ──────────────────────────────────────────────────────────────────
 async function bootApp() {
@@ -558,11 +622,17 @@ async function bootApp() {
 
 function startListener() {
   onSnapshot(doc(db, 'agenda', 'data'), snap => {
-    weekData = snap.exists() ? (snap.data().weeks || {}) : {};
+    const d = snap.exists() ? snap.data() : {};
+    weekData = d.weeks || {};
+    edtConfig = d.edt || { A: {}, B: {} };
+    if (!edtConfig.A) edtConfig.A = {};
+    if (!edtConfig.B) edtConfig.B = {};
     renderWeek();
     setSyncState('ok');
   }, () => setSyncState('err'));
 }
+
+let edtConfig = { A: {}, B: {} };
 
 async function save() {
   if (!db) return;
@@ -570,7 +640,7 @@ async function save() {
   clearTimeout(saveTimer);
   saveTimer = setTimeout(async () => {
     try {
-      await setDoc(doc(db, 'agenda', 'data'), { weeks: weekData });
+      await setDoc(doc(db, 'agenda', 'data'), { weeks: weekData, edt: edtConfig });
       setSyncState('ok');
     } catch(e) { setSyncState('err'); }
   }, 600);
@@ -661,15 +731,22 @@ function renderWeek() {
       const events = (data.cells && data.cells[cellKey]) || [];
       const todayCls = isToday(currentMonday, d) ? ' is-today' : '';
 
-      html += `<div class="cell${todayCls}" onclick="openAddModal(${si},${d})">
+      const weekType = isWeekA(currentMonday) ? 'A' : 'B';
+      const isNoCours = edtConfig[weekType][cellKey] === true;
+      const noCoursCls = isNoCours ? ' no-cours' : '';
+      const clickHandler = `onCellClick(event,${si},${d})`;
+
+      html += `<div class="cell${todayCls}${noCoursCls}" onclick="${clickHandler}">
         <div class="cell-tags">`;
 
-      events.forEach(ev => {
-        html += `<div class="tag ${ev.type}" onclick="event.stopPropagation()">
-          ${esc(ev.text)}
-          <span class="tag-del" onclick="event.stopPropagation();deleteEvent('${cellKey}','${ev.id}')">✕</span>
-        </div>`;
-      });
+      if (!isNoCours) {
+        events.forEach(ev => {
+          html += `<div class="tag ${ev.type}" onclick="event.stopPropagation()">
+            ${esc(ev.text)}
+            <span class="tag-del" onclick="event.stopPropagation();deleteEvent('${cellKey}','${ev.id}')">✕</span>
+          </div>`;
+        });
+      }
 
       html += `</div>
         <div class="cell-add">+ ajouter</div>
@@ -763,6 +840,29 @@ window.doLogin = async function() {
     };
     errEl.textContent = msgs[e.code] || ('Erreur : ' + e.code);
   } finally { btn.disabled = false; btn.textContent = 'Se connecter'; }
+};
+
+window.toggleConfigMode = function() {
+  configMode = !configMode;
+  document.getElementById('weekGrid').classList.toggle('config-mode', configMode);
+  document.getElementById('configModeBar').classList.toggle('show', configMode);
+  document.getElementById('configModeBtn').style.background = configMode ? 'var(--accent)' : '';
+  document.getElementById('configModeBtn').style.color = configMode ? 'white' : '';
+};
+
+window.onCellClick = function(event, slotIdx, dayIdx) {
+  const cellKey = `${slotIdx}-${dayIdx}`;
+  const weekType = isWeekA(currentMonday) ? 'A' : 'B';
+  if (configMode) {
+    // Toggle no-cours
+    edtConfig[weekType][cellKey] = !edtConfig[weekType][cellKey];
+    save();
+    return;
+  }
+  // Normal mode: open add modal only if not no-cours
+  if (!edtConfig[weekType][cellKey]) {
+    openAddModal(slotIdx, dayIdx);
+  }
 };
 
 window.doLogout = async function() { if (auth) await signOut(auth); };
