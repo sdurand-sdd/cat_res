@@ -580,10 +580,34 @@ const FIREBASE_CONFIG = {
   appId: "1:209518858392:web:5043be46f619d0251c40ed"
 };
 
-// ── CLASSES & SLOTS ───────────────────────────────────────────────────────────
-const CLASSES = ['4°4','4°5','4°2','3°1','3°3','3°5','5°3','5°3G'];
+// ── EMPLOI DU TEMPS ──────────────────────────────────────────────────────────
 const DAYS = ['Lundi','Mardi','Mercredi','Jeudi','Vendredi'];
 const DAYS_SHORT = ['Lun','Mar','Mer','Jeu','Ven'];
+const SLOTS = ['M1','M2','M3','M4','S1','S2','S3','S4'];
+
+// EDT réel : pour chaque semaine (A/B), chaque créneau (M1..S4), la classe par jour (0=Lun..4=Ven) ou null
+const EDT = {
+  A: {
+    M1: ['4°4',  '4°5',  '4°5',  null,   null  ],
+    M2: ['3°1',  '3°1',  null,   null,   null  ],
+    M3: ['4°2',  '4°2',  '4°4',  null,   '5°3' ],
+    M4: [null,   '3°5',  '3°5',  '4°2',  '3°3' ],
+    S1: [null,   null,   null,   null,   null  ],
+    S2: [null,   '5°3',  null,   '3°5',  null  ],
+    S3: ['5°3G', null,   null,   '3°1',  null  ],
+    S4: ['5°3G', null,   null,   '3°3',  null  ],
+  },
+  B: {
+    M1: ['4°4',  '4°5',  '4°5',  '4°4',  null  ],
+    M2: ['3°1',  null,   null,   null,   null  ],
+    M3: ['4°2',  '4°2',  '4°4',  null,   '5°3' ],
+    M4: [null,   '3°5',  null,   '4°5',  '3°3' ],
+    S1: [null,   null,   null,   null,   null  ],
+    S2: [null,   '3°3',  null,   '3°5',  null  ],
+    S3: ['5°3',  null,   null,   '3°1',  null  ],
+    S4: ['3°3',  null,   null,   null,   null  ],
+  }
+};
 
 // ── STATE ─────────────────────────────────────────────────────────────────────
 let db = null, auth = null;
@@ -721,25 +745,35 @@ function renderWeek() {
     </div>`;
   }
 
-  // Slot rows
-  CLASSES.forEach((cls, si) => {
-    // Label cell
-    html += `<div class="slot-label"><span class="slot-class">${cls}</span></div>`;
+  // Slot rows — based on real EDT
+  const weekType = wA ? 'A' : 'B';
+  SLOTS.forEach((slot, si) => {
+    const rowClasses = EDT[weekType][slot];
+    // Skip row if all days are null and no manual override forcing active
+    const rowHasAnything = rowClasses.some(c => c !== null) ||
+      [0,1,2,3,4].some(d => edtConfig[weekType][si+'-'+d] === false);
+    if (!rowHasAnything) return;
+
+    html += `<div class="slot-label"><span class="slot-class">${slot}</span></div>`;
 
     for (let d = 0; d < 5; d++) {
       const cellKey = `${si}-${d}`;
       const events = (data.cells && data.cells[cellKey]) || [];
-      const todayCls = isToday(currentMonday, d) ? ' is-today' : '';
-
-      const weekType = isWeekA(currentMonday) ? 'A' : 'B';
-      const isNoCours = edtConfig[weekType][cellKey] === true;
+      const baseClass = EDT[weekType][slot][d];
+      const override = edtConfig[weekType][cellKey];
+      const isNoCours = override === true || (baseClass === null && override !== false);
       const noCoursCls = isNoCours ? ' no-cours' : '';
+      const todayClsD = isToday(currentMonday, d) ? ' is-today' : '';
       const clickHandler = `onCellClick(event,${si},${d})`;
+      const classLabel = baseClass
+        ? `<span style="font-size:0.75rem;font-weight:800;color:var(--accent-b);display:block;margin-bottom:2px">${baseClass}</span>`
+        : '';
 
-      html += `<div class="cell${todayCls}${noCoursCls}" onclick="${clickHandler}">
+      html += `<div class="cell${todayClsD}${noCoursCls}" onclick="${clickHandler}">
         <div class="cell-tags">`;
 
       if (!isNoCours) {
+        html += classLabel;
         events.forEach(ev => {
           html += `<div class="tag ${ev.type}" onclick="event.stopPropagation()">
             ${esc(ev.text)}
@@ -780,8 +814,10 @@ window.openAddModal = function(slotIdx, dayIdx) {
   modalContext = { slotIdx, dayIdx };
   const date = new Date(currentMonday);
   date.setDate(currentMonday.getDate() + dayIdx);
+  const wt = isWeekA(currentMonday) ? 'A' : 'B';
+  const className = EDT[wt][SLOTS[slotIdx]][dayIdx] || SLOTS[slotIdx];
   document.getElementById('modalTitle').textContent =
-    `${CLASSES[slotIdx]} — ${DAYS[dayIdx]} ${date.getDate()}/${date.getMonth()+1}`;
+    `${className} — ${DAYS[dayIdx]} ${date.getDate()}/${date.getMonth()+1}`;
   document.getElementById('eventText').value = '';
   selectType('cours');
   document.getElementById('addModal').classList.add('open');
