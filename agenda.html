@@ -1124,8 +1124,11 @@ window.openSettings = function() {
     A: {}, B: {}
   };
   SLOTS.forEach(s => {
-    settingsEDT.A[s] = [...(EDT.A[s] || [null,null,null,null,null])];
-    settingsEDT.B[s] = [...(EDT.B[s] || [null,null,null,null,null])];
+    settingsEDT.A[s] = Array.isArray(EDT.A && EDT.A[s]) ? [...EDT.A[s]] : [null,null,null,null,null];
+    settingsEDT.B[s] = Array.isArray(EDT.B && EDT.B[s]) ? [...EDT.B[s]] : [null,null,null,null,null];
+    // Ensure length 5
+    while (settingsEDT.A[s].length < 5) settingsEDT.A[s].push(null);
+    while (settingsEDT.B[s].length < 5) settingsEDT.B[s].push(null);
   });
   renderSettingsClasses();
   renderSettingsEDT('A');
@@ -1208,12 +1211,14 @@ function renderSettingsEDT(week) {
   </tr></thead><tbody>`;
 
   slots.forEach((slot, si) => {
-    html += `<tr><td style="font-weight:700;font-size:0.85rem;color:var(--text2);padding:4px 8px">${slot}</td>`;
+    // Ensure slot array exists
+    if (!settingsEDT[week][slot]) settingsEDT[week][slot] = [null,null,null,null,null];
+    html += `<tr><td style="font-weight:700;font-size:0.85rem;color:var(--text2);padding:4px 8px">${esc(slot)}</td>`;
     for (let d = 0; d < 5; d++) {
-      const val = settingsEDT[week][slot] ? settingsEDT[week][slot][d] : null;
+      const val = settingsEDT[week][slot][d] || '';
       const bgColor = val ? (classes.find(c=>c.name===val)?.color || 'white') : 'white';
       html += `<td>
-        <select onchange="settingsEDT['${week}']['${slot}'][${d}]=this.value||null;this.parentElement.style.background=this.value?(settingsEDT.classes.find(c=>c.name===this.value)?.color||'white'):'white'"
+        <select data-week="${week}" data-slot="${si}" data-day="${d}"
           style="background:${bgColor}">
           <option value="">—</option>
           ${classes.map(c => `<option value="${esc(c.name)}" ${val===c.name?'selected':''}>${esc(c.name)}</option>`).join('')}
@@ -1225,6 +1230,21 @@ function renderSettingsEDT(week) {
 
   html += '</tbody></table>';
   el.innerHTML = html;
+
+  // Attach events via delegation (avoids inline JS string issues)
+  el.querySelectorAll('select').forEach(sel => {
+    sel.addEventListener('change', function() {
+      const w = this.dataset.week;
+      const si = parseInt(this.dataset.slot);
+      const d = parseInt(this.dataset.day);
+      const slot = settingsEDT.slots[si];
+      if (!settingsEDT[w][slot]) settingsEDT[w][slot] = [null,null,null,null,null];
+      settingsEDT[w][slot][d] = this.value || null;
+      const color = this.value ? (settingsEDT.classes.find(c=>c.name===this.value)?.color || 'white') : 'white';
+      this.style.background = color;
+      this.parentElement.style.background = color;
+    });
+  });
 }
 
 function renderSettingsSlots() {
