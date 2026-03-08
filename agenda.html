@@ -677,6 +677,8 @@ body {
 
     <div style="text-align:center;padding-bottom:20px">
       <button class="mbtn mbtn-accent" style="padding:12px 40px;font-size:1rem" onclick="saveSettings()">💾 Enregistrer et fermer</button>
+      <br><br>
+      <button class="nav-btn" onclick="repairEDT()" style="font-size:0.8rem;color:var(--text3)">🔧 Réparer les données Firebase (si problème d'affichage)</button>
     </div>
   </div>
 </div>
@@ -804,9 +806,9 @@ function startListener() {
         if (!d.edt_grid[w]) return;
         SLOTS.forEach(s => {
           const raw = d.edt_grid[w][s];
+          console.log(`EDT ${w} ${s} raw:`, JSON.stringify(raw));
           if (Array.isArray(raw)) {
-            // Convert "" back to null, and ensure exactly 5 elements
-            const arr = raw.map(v => (v === '' || v === undefined) ? null : v);
+            const arr = raw.map(v => (v === '' || v === undefined || v === null) ? null : v);
             while (arr.length < 5) arr.push(null);
             EDT[w][s] = arr;
           } else {
@@ -814,6 +816,7 @@ function startListener() {
           }
         });
       });
+      console.log('EDT loaded:', JSON.stringify(EDT));
     }
     if (d.classes) CLASS_LIST = d.classes;
     renderWeek();
@@ -1295,6 +1298,25 @@ window.delSlot = function(i) {
   renderSettingsSlots();
   renderSettingsEDT('A');
   renderSettingsEDT('B');
+};
+
+// Force re-save EDT from current settingsEDT selects state
+window.repairEDT = function() {
+  // Read current values directly from the DOM selects
+  ['A','B'].forEach(w => {
+    const table = document.getElementById('edtEditor' + w);
+    if (!table) return;
+    table.querySelectorAll('select').forEach(sel => {
+      const si = parseInt(sel.dataset.slot);
+      const d = parseInt(sel.dataset.day);
+      const slot = settingsEDT.slots[si];
+      if (!slot) return;
+      if (!settingsEDT[w][slot]) settingsEDT[w][slot] = [null,null,null,null,null];
+      settingsEDT[w][slot][d] = sel.value || null;
+    });
+  });
+  saveSettings();
+  toast('EDT réparé et sauvegardé ✓');
 };
 
 bootApp();
