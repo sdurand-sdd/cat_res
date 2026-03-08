@@ -948,6 +948,11 @@ function renderWeek() {
       const cellKey = `${si}-${d}`;
       const events = (data.cells && data.cells[cellKey]) || [];
       const baseClass = EDT[weekType][slot][d];
+      if (slot === 'S1') {
+        console.log(`S1 day=${d} baseClass=${baseClass} weekType=${weekType}`);
+        console.log(`  override=${JSON.stringify(override)} isNoCours=${isNoCours}`);
+        console.log(`  edtConfig[${weekType}]:`, JSON.stringify(edtConfig[weekType]));
+      }
       const override = edtConfig[weekType] ? edtConfig[weekType][cellKey] : undefined;
       // A cell is "no cours" only if explicitly greyed via config mode (override===true)
       // A null baseClass is still clickable/usable
