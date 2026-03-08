@@ -678,7 +678,9 @@ body {
     <div style="text-align:center;padding-bottom:20px">
       <button class="mbtn mbtn-accent" style="padding:12px 40px;font-size:1rem" onclick="saveSettings()">💾 Enregistrer et fermer</button>
       <br><br>
-      <button class="nav-btn" onclick="repairEDT()" style="font-size:0.8rem;color:var(--text3)">🔧 Réparer les données Firebase (si problème d'affichage)</button>
+      <button class="nav-btn" onclick="repairEDT()" style="font-size:0.8rem;color:var(--text3)">🔧 Réparer les données Firebase</button>
+      &nbsp;
+      <button class="nav-btn" onclick="resetEdtConfig()" style="font-size:0.8rem;color:var(--danger,#e05c5c)">🗑 Réinitialiser les cases grisées manuellement</button>
     </div>
   </div>
 </div>
@@ -806,7 +808,7 @@ function startListener() {
         if (!d.edt_grid[w]) return;
         SLOTS.forEach(s => {
           const raw = d.edt_grid[w][s];
-          console.log(`EDT ${w} ${s} raw:`, JSON.stringify(raw));
+
           if (Array.isArray(raw)) {
             const arr = raw.map(v => (v === '' || v === undefined || v === null) ? null : v);
             while (arr.length < 5) arr.push(null);
@@ -816,7 +818,7 @@ function startListener() {
           }
         });
       });
-      console.log('EDT loaded:', JSON.stringify(EDT));
+
     }
     if (d.classes) CLASS_LIST = d.classes;
     renderWeek();
@@ -948,11 +950,7 @@ function renderWeek() {
       const cellKey = `${si}-${d}`;
       const events = (data.cells && data.cells[cellKey]) || [];
       const baseClass = EDT[weekType][slot][d];
-      if (slot === 'S1') {
-        console.log(`S1 day=${d} baseClass=${baseClass} weekType=${weekType}`);
-        console.log(`  override=${JSON.stringify(override)} isNoCours=${isNoCours}`);
-        console.log(`  edtConfig[${weekType}]:`, JSON.stringify(edtConfig[weekType]));
-      }
+
       const override = edtConfig[weekType] ? edtConfig[weekType][cellKey] : undefined;
       // A cell is "no cours" only if explicitly greyed via config mode (override===true)
       // A null baseClass is still clickable/usable
@@ -1306,6 +1304,14 @@ window.delSlot = function(i) {
 };
 
 // Force re-save EDT from current settingsEDT selects state
+window.resetEdtConfig = async function() {
+  if (!confirm('Réinitialiser toutes les cases grisées manuellement (mode ✏️) ? Cela ne supprime pas votre EDT.')) return;
+  edtConfig = { A: {}, B: {} };
+  await save();
+  renderWeek();
+  toast('Cases réinitialisées ✓');
+};
+
 window.repairEDT = function() {
   // Read current values directly from the DOM selects
   ['A','B'].forEach(w => {
