@@ -799,12 +799,20 @@ function startListener() {
     if (!edtConfig.B) edtConfig.B = {};
     if (d.slots) SLOTS = d.slots;
     if (d.edt_grid) {
-      // Merge to preserve structure
-      EDT = d.edt_grid;
-      // Ensure all slots exist in EDT
+      EDT = { A: {}, B: {} };
       ['A','B'].forEach(w => {
-        if (!EDT[w]) EDT[w] = {};
-        SLOTS.forEach(s => { if (!EDT[w][s]) EDT[w][s] = [null,null,null,null,null]; });
+        if (!d.edt_grid[w]) return;
+        SLOTS.forEach(s => {
+          const raw = d.edt_grid[w][s];
+          if (Array.isArray(raw)) {
+            // Convert "" back to null, and ensure exactly 5 elements
+            const arr = raw.map(v => (v === '' || v === undefined) ? null : v);
+            while (arr.length < 5) arr.push(null);
+            EDT[w][s] = arr;
+          } else {
+            EDT[w][s] = [null,null,null,null,null];
+          }
+        });
       });
     }
     if (d.classes) CLASS_LIST = d.classes;
@@ -821,7 +829,18 @@ async function save() {
   clearTimeout(saveTimer);
   saveTimer = setTimeout(async () => {
     try {
-      await setDoc(doc(db, 'agenda', 'data'), { weeks: weekData, edt: edtConfig, slots: SLOTS, edt_grid: EDT, classes: CLASS_LIST });
+      // Firestore doesn't preserve null in arrays — convert null <-> "" 
+      function edtToFirestore(edt) {
+        const out = {};
+        ['A','B'].forEach(w => {
+          out[w] = {};
+          Object.keys(edt[w]).forEach(slot => {
+            out[w][slot] = edt[w][slot].map(v => v === null ? '' : v);
+          });
+        });
+        return out;
+      }
+      await setDoc(doc(db, 'agenda', 'data'), { weeks: weekData, edt: edtConfig, slots: SLOTS, edt_grid: edtToFirestore(EDT), classes: CLASS_LIST });
       setSyncState('ok');
     } catch(e) { setSyncState('err'); }
   }, 600);
@@ -1146,8 +1165,8 @@ window.saveSettings = function() {
   SLOTS = settingsEDT.slots;
   EDT.A = {}; EDT.B = {};
   SLOTS.forEach(s => {
-    EDT.A[s] = settingsEDT.A[s] || [null,null,null,null,null];
-    EDT.B[s] = settingsEDT.B[s] || [null,null,null,null,null];
+    EDT.A[s] = (settingsEDT.A[s] || [null,null,null,null,null]).map(v => v || null);
+    EDT.B[s] = (settingsEDT.B[s] || [null,null,null,null,null]).map(v => v || null);
   });
   CLASS_LIST = settingsEDT.classes;
   closeSettings();
