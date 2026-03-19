@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Carnet de Bord</title>
 <link href="https://fonts.googleapis.com/css2?family=Lora:wght@600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📒</text></svg>">
 <style>
 :root {
   --bg: #1c1f26;
@@ -97,6 +96,13 @@ header h1 { font-family: 'Lora', serif; font-size: 1.2rem; color: var(--accent);
 .task-date { font-size: 0.7rem; color: var(--text3); white-space: nowrap; padding-top: 3px; }
 .task-del { opacity: 0; background: none; border: none; color: var(--danger); cursor: pointer; padding: 2px 5px; border-radius: 4px; font-size: 0.8rem; transition: all 0.12s; }
 .task-row:hover .task-del { opacity: 1; }
+.task-move { opacity: 0; background: none; border: none; color: var(--text3); cursor: pointer; padding: 2px 4px; border-radius: 4px; font-size: 0.75rem; transition: all 0.12s; line-height: 1; display: flex; flex-direction: column; gap: 1px; }
+.task-row:hover .task-move { opacity: 1; }
+.task-move:hover { color: var(--accent); background: rgba(232,201,109,0.15); }
+.task-drag { cursor: grab; opacity: 0; font-size: 0.85rem; color: var(--text3); padding: 2px 4px; transition: opacity 0.12s; user-select: none; }
+.task-row:hover .task-drag { opacity: 1; }
+.task-row.dragging { opacity: 0.4; }
+.task-row.drag-over { border-top: 2px solid var(--accent); }
 
 /* ADD ROW */
 .add-row { display: flex; align-items: center; gap: 8px; padding: 8px 0 4px; border-top: 1px dashed var(--border); margin-top: 6px; }
@@ -516,10 +522,20 @@ function renderCat(cat, idx, total) {
 
 function renderTask(t, catId) {
   const dateStr = t.createdAt ? new Date(t.createdAt).toLocaleDateString('fr-FR',{day:'numeric',month:'short'}) : '';
-  return `<div class="task-row ${t.done?'done':''}" id="tr-${t.id}">
+  return `<div class="task-row ${t.done?'done':''}" id="tr-${t.id}"
+    draggable="true"
+    ondragstart="onDragStart(event,'${catId}','${t.id}')"
+    ondragover="onDragOver(event)"
+    ondragleave="onDragLeave(event)"
+    ondrop="onDrop(event,'${catId}','${t.id}')">
+    <span class="task-drag" title="Glisser pour réordonner">⠿</span>
     <input type="checkbox" class="task-cb" ${t.done?'checked':''} onchange="toggleTask('${catId}','${t.id}')">
     <span class="task-label">${esc(t.text)}</span>
     <span class="task-date">${dateStr}</span>
+    <div class="task-move">
+      <button style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:0.7rem;padding:0;line-height:1" onclick="moveTask('${catId}','${t.id}',-1)" title="Monter">▲</button>
+      <button style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:0.7rem;padding:0;line-height:1" onclick="moveTask('${catId}','${t.id}',1)" title="Descendre">▼</button>
+    </div>
     <button class="task-del" onclick="deleteTask('${catId}','${t.id}')">✕</button>
   </div>`;
 }
@@ -592,6 +608,59 @@ window.moveCat = function(id, dir) {
   if (ni < 0 || ni >= order.length) return;
   [order[idx], order[ni]] = [order[ni], order[idx]];
   appData.order = order;
+  saveData();
+};
+
+// ── TASK REORDER ──────────────────────────────────────────────────────────────
+window.moveTask = function(catId, taskId, dir) {
+  const cat = (appData.categories||[]).find(c => c.id === catId);
+  if (!cat) return;
+  const tasks = cat.tasks || [];
+  const idx = tasks.findIndex(t => t.id === taskId);
+  if (idx < 0) return;
+  const newIdx = idx + dir;
+  if (newIdx < 0 || newIdx >= tasks.length) return;
+  const [moved] = tasks.splice(idx, 1);
+  tasks.splice(newIdx, 0, moved);
+  saveData();
+};
+
+let dragSrcCatId = null;
+let dragSrcTaskId = null;
+
+window.onDragStart = function(e, catId, taskId) {
+  dragSrcCatId = catId;
+  dragSrcTaskId = taskId;
+  e.currentTarget.classList.add('dragging');
+  e.dataTransfer.effectAllowed = 'move';
+};
+
+window.onDragOver = function(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  e.currentTarget.classList.add('drag-over');
+};
+
+window.onDragLeave = function(e) {
+  e.currentTarget.classList.remove('drag-over');
+};
+
+window.onDrop = function(e, catId, taskId) {
+  e.preventDefault();
+  e.currentTarget.classList.remove('drag-over');
+  if (!dragSrcTaskId || (dragSrcTaskId === taskId)) return;
+  // Only reorder within same category
+  if (dragSrcCatId !== catId) { toast('Déplacez uniquement dans la même catégorie'); return; }
+  const cat = (appData.categories||[]).find(c => c.id === catId);
+  if (!cat) return;
+  const tasks = cat.tasks || [];
+  const fromIdx = tasks.findIndex(t => t.id === dragSrcTaskId);
+  const toIdx = tasks.findIndex(t => t.id === taskId);
+  if (fromIdx < 0 || toIdx < 0) return;
+  const [moved] = tasks.splice(fromIdx, 1);
+  tasks.splice(toIdx, 0, moved);
+  dragSrcTaskId = null;
+  dragSrcCatId = null;
   saveData();
 };
 
