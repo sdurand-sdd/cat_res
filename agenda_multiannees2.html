@@ -1509,12 +1509,36 @@ window.selectType = function(type) {
 };
 
 window.saveEvent = function() {
+  console.log('=== saveEvent appelé ===');
   const text = document.getElementById('eventText').value.trim();
-  if (!text || !currentCell) return;
+  console.log('text:', text);
+  console.log('currentCell:', currentCell);
+  console.log('selectedType:', selectedType);
+  console.log('currentWeekKey:', currentWeekKey);
+  
+  if (!text) {
+    console.log('❌ Pas de texte');
+    toast('Veuillez saisir une description');
+    return;
+  }
+  
+  if (!currentCell) {
+    console.log('❌ currentCell non défini');
+    return;
+  }
   
   if (!weekData[currentWeekKey]) weekData[currentWeekKey] = { notes: '', cells: {}, dayNotes: {} };
   if (!weekData[currentWeekKey].cells) weekData[currentWeekKey].cells = {};
-  if (!weekData[currentWeekKey].cells[currentCell]) weekData[currentWeekKey].cells[currentCell] = { events: [] };
+  if (!weekData[currentWeekKey].cells[currentCell]) {
+    weekData[currentWeekKey].cells[currentCell] = { events: [] };
+  }
+  
+  // S'assurer que events existe (compatibilité avec anciennes données qui avaient 'tasks')
+  if (!weekData[currentWeekKey].cells[currentCell].events) {
+    weekData[currentWeekKey].cells[currentCell].events = [];
+  }
+  
+  console.log('weekData avant ajout:', weekData[currentWeekKey].cells[currentCell]);
   
   weekData[currentWeekKey].cells[currentCell].events.push({
     id: uid(),
@@ -1522,10 +1546,13 @@ window.saveEvent = function() {
     text
   });
   
+  console.log('weekData après ajout:', weekData[currentWeekKey].cells[currentCell]);
+  
   save();
   renderWeek();
   closeModal();
   toast('Événement ajouté ✓');
+  console.log('=== saveEvent terminé ===');
 };
 
 window.deleteEvent = function(cellKey, evId) {
