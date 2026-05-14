@@ -1,0 +1,1767 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Mon Agenda Multi-Années</title>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📅</text></svg>">
+<style>
+:root {
+  --bg: #faf8f5;
+  --paper: #ffffff;
+  --border: #e8e2d9;
+  --border2: #d4cdc3;
+  --text: #2c2825;
+  --text2: #7a7068;
+  --text3: #b0a89e;
+  --pink: #f9e4ec;
+  --pink-b: #e8a0bc;
+  --blue: #e0eef9;
+  --blue-b: #89b8dc;
+  --green: #e2f2e8;
+  --green-b: #8dc9a0;
+  --yellow: #fef6e0;
+  --yellow-b: #e8c96d;
+  --purple: #ede8f8;
+  --purple-b: #a98fd4;
+  --peach: #fde8dc;
+  --peach-b: #e8a07a;
+  --teal: #e0f4f2;
+  --teal-b: #7dc4bc;
+  --lavender: #ece8f8;
+  --lavender-b: #b4a8e0;
+  --accent: #d4517a;
+  --accent-b: #4a90c4;
+  --summer: #ffa94d;
+  --today-bg: #fff8e6;
+  --c-4d4-bg: #fde8f0; --c-4d4-b: #e8a0bc;
+  --c-4d5-bg: #fef0e0; --c-4d5-b: #e8a878;
+  --c-4d2-bg: #fefbe0; --c-4d2-b: #d4c050;
+  --c-3d1-bg: #e8f6ee; --c-3d1-b: #7dc4a0;
+  --c-3d3-bg: #e0f0fb; --c-3d3-b: #80bce8;
+  --c-3d5-bg: #f0eafb; --c-3d5-b: #b090d8;
+  --c-5d3-bg: #fde8e4; --c-5d3-b: #e89080;
+  --c-5d3g-bg: #fde8e4; --c-5d3g-b: #e89080;
+  --c-prep-bg: #fff4e6; --c-prep-b: #ffb366;
+  --today-border: #e8c96d;
+  --shadow: 0 2px 12px rgba(0,0,0,0.07);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.12);
+  --radius: 12px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Outfit', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  font-size: 14px;
+}
+
+/* ── HEADER ── */
+.app-header {
+  background: var(--paper);
+  border-bottom: 2px solid var(--border);
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: var(--shadow);
+}
+
+.app-header h1 {
+  font-family: 'Caveat', cursive;
+  font-size: 1.6rem;
+  color: var(--accent);
+  letter-spacing: -0.5px;
+  line-height: 1;
+}
+
+.year-selector {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: 8px;
+}
+
+.year-selector label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text2);
+  font-family: 'Caveat', cursive;
+  font-size: 1rem;
+}
+
+.year-selector select {
+  background: var(--bg);
+  border: 1.5px solid var(--border2);
+  border-radius: 8px;
+  padding: 4px 10px;
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.year-selector select:hover {
+  border-color: var(--accent);
+}
+
+.summer-badge {
+  background: linear-gradient(135deg, #ffd89b 0%, #ffa94d 100%);
+  color: white;
+  padding: 3px 10px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 8px rgba(255, 169, 77, 0.3);
+}
+
+.week-nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.week-label {
+  text-align: center;
+  min-width: 200px;
+}
+
+.week-label .week-dates {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.week-label .week-type {
+  font-family: 'Caveat', cursive;
+  font-size: 1.1rem;
+  font-weight: 700;
+  line-height: 1;
+}
+.week-type.A { color: var(--accent); }
+.week-type.B { color: var(--accent-b); }
+.week-type.summer { color: var(--summer); }
+
+.nav-btn {
+  background: var(--bg);
+  border: 1.5px solid var(--border2);
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--text2);
+  transition: all 0.15s;
+}
+.nav-btn:hover { background: var(--border); color: var(--text); }
+.nav-btn.today-btn { color: var(--accent); border-color: var(--accent); background: #fdf0f5; }
+.nav-btn.today-btn:hover { background: var(--accent); color: white; }
+
+.settings-btn {
+  background: none;
+  border: 1.5px solid var(--border2);
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text2);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.settings-btn:hover { background: var(--bg); color: var(--accent); border-color: var(--accent); }
+
+.sync-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--text3); transition: background 0.3s; flex-shrink: 0; }
+.sync-dot.ok { background: #6dbf8e; }
+.sync-dot.err { background: #e07070; }
+.sync-dot.loading { background: var(--yellow-b); animation: pulse 1s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+.logout-btn {
+  background: none;
+  border: 1.5px solid var(--border2);
+  border-radius: 8px;
+  padding: 5px 10px;
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text3);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.logout-btn:hover { color: var(--accent); border-color: var(--accent); }
+
+/* ── NOTES BAR ── */
+.notes-bar {
+  background: var(--yellow);
+  border-bottom: 1px solid var(--yellow-b);
+  padding: 6px 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.82rem;
+}
+.notes-bar label { font-weight: 700; color: var(--text2); white-space: nowrap; font-family: 'Caveat', cursive; font-size: 1rem; }
+.notes-bar input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-family: inherit;
+  font-size: 0.85rem;
+  color: var(--text);
+  font-style: italic;
+}
+.notes-bar input::placeholder { color: var(--text3); }
+
+/* ── GRID ── */
+.grid-wrapper {
+  overflow-x: auto;
+  padding: 16px;
+  min-height: calc(100vh - 110px);
+}
+
+.week-grid {
+  display: grid;
+  grid-template-columns: 80px repeat(5, 1fr);
+  gap: 0;
+  min-width: 700px;
+  border: 1.5px solid var(--border2);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--border);
+  box-shadow: var(--shadow-lg);
+}
+
+.grid-header {
+  background: var(--paper);
+  padding: 8px 6px;
+  text-align: center;
+  font-weight: 700;
+  font-size: 0.82rem;
+  border-right: 1px solid var(--border);
+  border-bottom: 2px solid var(--border2);
+  color: var(--text2);
+  position: sticky;
+  top: 0;
+}
+.grid-header.day-header { color: var(--text); }
+.grid-header.day-header .day-name { font-size: 0.9rem; font-weight: 700; }
+.grid-header.day-header .day-num {
+  font-family: 'Caveat', cursive;
+  font-size: 1.3rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--text2);
+}
+.grid-header.day-header.is-today .day-num { color: var(--accent); }
+.grid-header.day-header.is-today { background: var(--today-bg); border-bottom-color: var(--today-border); }
+.grid-header:last-child { border-right: none; }
+
+.slot-label {
+  background: var(--bg);
+  padding: 6px 8px;
+  border-right: 2px solid var(--border2);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 2px;
+  min-height: 90px;
+}
+.slot-label .slot-class {
+  font-family: 'Caveat', cursive;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text2);
+  line-height: 1.2;
+}
+.slot-label .slot-time {
+  font-size: 0.68rem;
+  color: var(--text3);
+}
+
+.cell {
+  background: var(--paper);
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  padding: 4px;
+  min-height: 90px;
+  cursor: pointer;
+  transition: background 0.12s;
+  position: relative;
+  vertical-align: top;
+}
+.cell:last-child { border-right: none; }
+.cell:hover { background: #faf5ff; }
+.cell.no-cours { background: repeating-linear-gradient(45deg, #fafafa, #fafafa 10px, #f0f0f0 10px, #f0f0f0 20px); cursor: not-allowed; }
+.cell.no-cours:hover { background: repeating-linear-gradient(45deg, #fafafa, #fafafa 10px, #f0f0f0 10px, #f0f0f0 20px); }
+
+.cell.last-morning {
+  border-bottom: 4px solid var(--border2) !important;
+}
+.slot-label.last-morning {
+  border-bottom: 4px solid var(--border2) !important;
+}
+
+.week-grid.config-mode .cell:not(.no-cours):hover { background: #ffe4e4; }
+.week-grid.config-mode .cell.no-cours:hover { background: #e4ffe4; }
+
+.cell-course-label {
+  font-size: 0.78rem;
+  font-weight: 800;
+  display: block;
+  margin-bottom: 3px;
+}
+
+.task-item {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px;
+  margin: 3px 0;
+  font-size: 0.78rem;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  position: relative;
+  transition: all 0.15s;
+}
+.task-item:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.1); transform: translateY(-1px); }
+
+.task-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 5px;
+}
+
+.task-check {
+  width: 15px;
+  height: 15px;
+  border: 1.5px solid var(--border2);
+  border-radius: 3px;
+  cursor: pointer;
+  flex-shrink: 0;
+  margin-top: 1px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+}
+.task-check:hover { border-color: var(--accent); background: var(--pink); }
+.task-check.done { background: var(--accent); border-color: var(--accent); }
+.task-check.done::after { content: '✓'; color: white; font-size: 11px; font-weight: bold; }
+
+.task-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.task-text {
+  color: var(--text);
+  word-break: break-word;
+  line-height: 1.3;
+}
+.task-item.done .task-text { text-decoration: line-through; opacity: 0.5; }
+
+.task-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.7rem;
+  color: var(--text3);
+  margin-top: 2px;
+}
+
+.task-class {
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-weight: 600;
+  font-size: 0.68rem;
+}
+
+.task-date {
+  font-weight: 500;
+}
+
+.task-delete {
+  background: none;
+  border: none;
+  color: var(--text3);
+  cursor: pointer;
+  font-size: 0.9rem;
+  padding: 2px 4px;
+  opacity: 0;
+  transition: all 0.15s;
+  position: absolute;
+  right: 4px;
+  top: 4px;
+}
+.task-item:hover .task-delete { opacity: 1; }
+.task-delete:hover { color: var(--accent); }
+
+.day-note {
+  margin-top: 4px;
+  padding: 4px 6px;
+  background: var(--yellow);
+  border: 1px dashed var(--yellow-b);
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-style: italic;
+  color: var(--text2);
+}
+
+.day-note-input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-family: inherit;
+  font-size: 0.75rem;
+  font-style: italic;
+  color: var(--text2);
+}
+.day-note-input::placeholder { color: var(--text3); }
+
+/* ── MODALS ── */
+.modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.5);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.modal.show { display: flex; }
+
+.modal-content {
+  background: var(--paper);
+  border-radius: var(--radius);
+  padding: 24px;
+  max-width: 500px;
+  width: 100%;
+  box-shadow: var(--shadow-lg);
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.modal-header h2 {
+  font-family: 'Caveat', cursive;
+  font-size: 1.8rem;
+  color: var(--accent);
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: var(--text3);
+  cursor: pointer;
+  line-height: 1;
+  padding: 0;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.close-btn:hover { color: var(--accent); }
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-group label {
+  display: block;
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--text2);
+  margin-bottom: 6px;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1.5px solid var(--border2);
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  color: var(--text);
+  background: var(--bg);
+  transition: border-color 0.15s;
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.form-group textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.form-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.btn {
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  border: none;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: white;
+}
+.btn-primary:hover { background: #c03d68; }
+
+.btn-secondary {
+  background: var(--bg);
+  color: var(--text2);
+  border: 1.5px solid var(--border2);
+}
+.btn-secondary:hover { background: var(--border); }
+
+/* ── CONFIG MODE ── */
+.config-mode-bar {
+  background: var(--peach);
+  border-bottom: 1px solid var(--peach-b);
+  padding: 8px 20px;
+  display: none;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.85rem;
+}
+.config-mode-bar.show { display: flex; }
+.config-mode-bar .info {
+  flex: 1;
+  color: var(--text2);
+  font-weight: 500;
+}
+
+/* ── LOGIN ── */
+.login-screen {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, var(--pink) 0%, var(--blue) 100%);
+  z-index: 2000;
+  align-items: center;
+  justify-content: center;
+}
+.login-screen.show { display: flex; }
+
+.login-box {
+  background: var(--paper);
+  border-radius: var(--radius);
+  padding: 40px;
+  box-shadow: var(--shadow-lg);
+  max-width: 400px;
+  width: 90%;
+}
+
+.login-box h1 {
+  font-family: 'Caveat', cursive;
+  font-size: 2.5rem;
+  color: var(--accent);
+  margin-bottom: 30px;
+  text-align: center;
+}
+
+.login-error {
+  background: #ffe4e4;
+  color: #c03d68;
+  padding: 10px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  margin-bottom: 15px;
+  display: none;
+}
+.login-error.show { display: block; }
+
+/* ── SETTINGS ── */
+.settings-screen {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.5);
+  z-index: 1500;
+  overflow-y: auto;
+}
+.settings-screen.show { display: block; }
+
+.settings-panel {
+  background: var(--paper);
+  max-width: 1200px;
+  margin: 40px auto;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
+}
+
+.settings-header {
+  background: var(--bg);
+  padding: 20px 30px;
+  border-bottom: 2px solid var(--border2);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-radius: var(--radius) var(--radius) 0 0;
+}
+
+.settings-header h2 {
+  font-family: 'Caveat', cursive;
+  font-size: 2rem;
+  color: var(--accent);
+}
+
+.settings-body {
+  padding: 30px;
+}
+
+.settings-section {
+  margin-bottom: 40px;
+}
+
+.settings-section h3 {
+  font-family: 'Caveat', cursive;
+  font-size: 1.5rem;
+  color: var(--text);
+  margin-bottom: 20px;
+  border-bottom: 2px solid var(--border);
+  padding-bottom: 8px;
+}
+
+.settings-tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.tab-btn {
+  padding: 8px 16px;
+  background: var(--bg);
+  border: 1.5px solid var(--border2);
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--text2);
+  transition: all 0.15s;
+}
+.tab-btn.active {
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
+}
+.tab-btn:hover:not(.active) { background: var(--border); }
+
+.settings-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.settings-table th {
+  background: var(--bg);
+  padding: 8px;
+  text-align: center;
+  font-weight: 700;
+  border: 1px solid var(--border2);
+}
+
+.settings-table td {
+  padding: 4px;
+  border: 1px solid var(--border2);
+  text-align: center;
+}
+
+.settings-table select {
+  width: 100%;
+  padding: 6px;
+  border: 1.5px solid var(--border2);
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.class-row, .slot-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px;
+  background: var(--bg);
+  border-radius: 6px;
+  margin-bottom: 8px;
+}
+
+.class-swatch {
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  border: 1.5px solid var(--border2);
+}
+
+.class-name-badge {
+  flex: 1;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.del-btn {
+  background: var(--bg);
+  border: 1.5px solid var(--border2);
+  border-radius: 6px;
+  padding: 4px 8px;
+  cursor: pointer;
+  color: var(--text3);
+  font-size: 0.9rem;
+  transition: all 0.15s;
+}
+.del-btn:hover { background: #ffe4e4; color: var(--accent); border-color: var(--accent); }
+
+.add-class-form {
+  display: flex;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.add-class-form input[type="text"] {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1.5px solid var(--border2);
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 0.85rem;
+}
+
+.add-class-form input[type="color"] {
+  width: 50px;
+  height: 36px;
+  border: 1.5px solid var(--border2);
+  border-radius: 6px;
+  cursor: pointer;
+  padding: 2px;
+}
+
+/* ── TOAST ── */
+.toast {
+  position: fixed;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%) translateY(100px);
+  background: var(--text);
+  color: white;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  box-shadow: var(--shadow-lg);
+  opacity: 0;
+  transition: all 0.3s;
+  z-index: 3000;
+  white-space: nowrap;
+}
+.toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 768px) {
+  .app-header {
+    flex-wrap: wrap;
+    padding: 10px 15px;
+  }
+  .week-nav {
+    width: 100%;
+    justify-content: center;
+    margin-left: 0;
+    margin-top: 8px;
+  }
+  .week-grid {
+    grid-template-columns: 70px repeat(5, 1fr);
+  }
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div class="login-screen show" id="loginScreen">
+  <div class="login-box">
+    <h1>📅 Mon Agenda</h1>
+    <div class="login-error" id="loginError"></div>
+    <div class="form-group">
+      <label>Email</label>
+      <input type="email" id="loginEmail" placeholder="votre@email.com">
+    </div>
+    <div class="form-group">
+      <label>Mot de passe</label>
+      <input type="password" id="loginPassword" placeholder="••••••••">
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-primary" style="width:100%" onclick="doLogin()">Se connecter</button>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div class="app-header">
+  <h1>📅 Mon Agenda</h1>
+  
+  <div class="year-selector">
+    <label>Année:</label>
+    <select id="yearSelect" onchange="changeYear()"></select>
+  </div>
+  
+  <div id="summerBadge" class="summer-badge" style="display:none">☀️ Mode Préparations</div>
+  
+  <div class="week-nav">
+    <button class="nav-btn" onclick="changeWeek(-1)">←</button>
+    <div class="week-label">
+      <div class="week-dates" id="weekDates">—</div>
+      <div class="week-type" id="weekType">—</div>
+    </div>
+    <button class="nav-btn" onclick="changeWeek(1)">→</button>
+    <button class="nav-btn today-btn" onclick="goToToday()">Aujourd'hui</button>
+  </div>
+  
+  <button class="settings-btn" onclick="openSettings()">⚙️ EDT</button>
+  <button class="settings-btn" id="configModeBtn" onclick="toggleConfigMode()" title="Mode édition des cases grisées">✏️</button>
+  <div class="sync-dot" id="syncDot"></div>
+  <button class="logout-btn" onclick="doLogout()">↗</button>
+</div>
+
+<div class="notes-bar">
+  <label>Notes hebdo:</label>
+  <input type="text" id="weekNotes" placeholder="Notes pour cette semaine..." onchange="saveWeekNotes()">
+</div>
+
+<div class="config-mode-bar" id="configModeBar">
+  <span class="info">🖊️ Mode édition : cliquez sur les cases pour les griser/dégriser (pas de cours)</span>
+  <button class="btn btn-secondary" onclick="toggleConfigMode()">Quitter</button>
+</div>
+
+<div class="grid-wrapper">
+  <div class="week-grid" id="weekGrid">
+    <!-- Grid rendered by JS -->
+  </div>
+</div>
+
+<!-- ADD TASK MODAL -->
+<div class="modal" id="addModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>Ajouter un devoir</h2>
+      <button class="close-btn" onclick="closeModal()">×</button>
+    </div>
+    <div class="form-group">
+      <label>Classe/Matière</label>
+      <select id="taskClass"></select>
+    </div>
+    <div class="form-group">
+      <label>Description</label>
+      <textarea id="taskText" placeholder="Ex: Exercices p.42-45"></textarea>
+    </div>
+    <div class="form-group">
+      <label>Pour le</label>
+      <input type="date" id="taskDate">
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-primary" onclick="addTask()">Ajouter</button>
+      <button class="btn btn-secondary" onclick="closeModal()">Annuler</button>
+    </div>
+  </div>
+</div>
+
+<!-- SETTINGS SCREEN -->
+<div class="settings-screen" id="settingsScreen">
+  <div class="settings-panel">
+    <div class="settings-header">
+      <h2>⚙️ Configuration de l'EDT</h2>
+      <button class="close-btn" onclick="closeSettings()">×</button>
+    </div>
+    <div class="settings-body">
+      
+      <!-- Classes -->
+      <div class="settings-section">
+        <h3>Classes / Matières</h3>
+        <div id="classesEditor"></div>
+        <div class="add-class-form">
+          <input type="text" id="newClassName" placeholder="Nom de la classe (ex: 4D4)">
+          <input type="color" id="newClassColor" value="#e8a0bc">
+          <button class="btn btn-primary" onclick="addClass()">Ajouter</button>
+        </div>
+      </div>
+
+      <!-- EDT Tabs -->
+      <div class="settings-section">
+        <h3>Emploi du temps</h3>
+        <div id="edtInfo" style="background: var(--yellow); padding: 12px; border-radius: 8px; margin-bottom: 15px; font-size: 0.85rem; color: var(--text2);">
+          <!-- Info dynamique -->
+        </div>
+        <div class="settings-tabs" id="edtTabs">
+          <!-- Tabs rendered by JS -->
+        </div>
+        <div id="edtEditorContainer">
+          <!-- EDT tables rendered by JS -->
+        </div>
+      </div>
+
+      <!-- Slots -->
+      <div class="settings-section">
+        <h3>Créneaux horaires</h3>
+        <div id="slotsEditor"></div>
+        <button class="btn btn-secondary" onclick="addSlot()" style="margin-top:10px">+ Ajouter un créneau</button>
+      </div>
+
+      <!-- Actions -->
+      <div class="settings-section">
+        <h3>Actions avancées</h3>
+        <button class="btn btn-secondary" onclick="resetEdtConfig()">Réinitialiser les cases grisées</button>
+        <button class="btn btn-secondary" onclick="repairEDT()" style="margin-left:10px">Forcer la sauvegarde</button>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn btn-primary" onclick="saveSettings()">Enregistrer l'EDT</button>
+        <button class="btn btn-secondary" onclick="closeSettings()">Annuler</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+import { getFirestore, doc, onSnapshot, setDoc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCy9ooNIoqpfH8uxzo3_YboWvTqkxAmDgI",
+  authDomain: "todolist-9bab9.firebaseapp.com",
+  projectId: "todolist-9bab9",
+  storageBucket: "todolist-9bab9.firebasestorage.app",
+  messagingSenderId: "209518858392",
+  appId: "1:209518858392:web:5043be46f619d0251c40ed"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+// ── GLOBAL STATE ──────────────────────────────────────────────────────────────
+let currentUser = null;
+let currentMonday = null;
+let currentWeekKey = '';
+let configMode = false;
+
+// Multi-year structure
+let currentSchoolYear = ''; // e.g. "2024-2025"
+let allYearsData = {}; // { "2024-2025": { EDT, edtConfig, weekData }, "2025-2026": {...} }
+
+// Current year shortcuts (point to allYearsData[currentSchoolYear])
+let EDT = { A: {}, B: {}, SUMMER: {} };
+let edtConfig = { A: {}, B: {}, SUMMER: {} };
+let weekData = {};
+
+let CLASS_LIST = [];
+let SLOTS = ['M1','M2','M3','M4','S1','S2','S3','S4'];
+
+window.auth = auth;
+
+// ── SCHOOL YEAR LOGIC ─────────────────────────────────────────────────────────
+function getCurrentSchoolYear() {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth() + 1; // 1-12
+  
+  if (month >= 9) {
+    // Septembre-Décembre: année N -> N+1
+    return `${year}-${year + 1}`;
+  } else {
+    // Janvier-Août: année N-1 -> N
+    return `${year - 1}-${year}`;
+  }
+}
+
+function isSummerPeriod(date = new Date()) {
+  const month = date.getMonth() + 1; // 1-12
+  return month === 7 || month === 8; // Juillet ou Août
+}
+
+function getWeekType(monday, schoolYear = currentSchoolYear) {
+  if (isSummerPeriod(monday)) {
+    return 'SUMMER';
+  }
+  
+  // Référence: premier lundi de septembre de l'année scolaire
+  const [startYear] = schoolYear.split('-').map(Number);
+  let refDate = new Date(startYear, 8, 1); // 1er septembre
+  while (refDate.getDay() !== 1) {
+    refDate.setDate(refDate.getDate() + 1);
+  }
+  
+  const diffTime = monday - refDate;
+  const diffWeeks = Math.floor(diffTime / (7 * 24 * 60 * 60 * 1000));
+  return diffWeeks % 2 === 0 ? 'A' : 'B';
+}
+
+// ── YEAR MANAGEMENT ───────────────────────────────────────────────────────────
+function initYearSelector() {
+  const select = document.getElementById('yearSelect');
+  select.innerHTML = '';
+  
+  // Générer années de 2020 à 2035
+  for (let y = 2020; y <= 2035; y++) {
+    const yearLabel = `${y}-${y + 1}`;
+    const opt = document.createElement('option');
+    opt.value = yearLabel;
+    opt.textContent = yearLabel;
+    select.appendChild(opt);
+  }
+  
+  // Sélectionner l'année en cours
+  currentSchoolYear = getCurrentSchoolYear();
+  select.value = currentSchoolYear;
+}
+
+window.changeYear = function() {
+  const newYear = document.getElementById('yearSelect').value;
+  if (newYear !== currentSchoolYear) {
+    currentSchoolYear = newYear;
+    loadYearData();
+    goToToday();
+  }
+};
+
+function loadYearData() {
+  // Charger les données de l'année courante depuis allYearsData
+  if (!allYearsData[currentSchoolYear]) {
+    // Créer structure vide pour nouvelle année
+    allYearsData[currentSchoolYear] = {
+      EDT: { A: {}, B: {}, SUMMER: {} },
+      edtConfig: { A: {}, B: {}, SUMMER: {} },
+      weekData: {},
+      classes: [...CLASS_LIST] // copie des classes
+    };
+    
+    // Initialiser EDT SUMMER avec Préparation
+    SLOTS.forEach(slot => {
+      allYearsData[currentSchoolYear].EDT.SUMMER[slot] = ['Préparation', 'Préparation', 'Préparation', 'Préparation', 'Préparation'];
+    });
+  }
+  
+  // Pointer les variables globales vers l'année courante
+  const yearData = allYearsData[currentSchoolYear];
+  EDT = yearData.EDT;
+  edtConfig = yearData.edtConfig;
+  weekData = yearData.weekData;
+  CLASS_LIST = yearData.classes || CLASS_LIST;
+  
+  // Sauvegarder automatiquement
+  save();
+}
+
+// ── BOOT APP ──────────────────────────────────────────────────────────────────
+async function bootApp() {
+  initYearSelector();
+  
+  onAuthStateChanged(auth, async (user) => {
+    if (user) {
+      currentUser = user;
+      document.getElementById('loginScreen').classList.remove('show');
+      await loadData();
+      loadYearData();
+      goToToday();
+    } else {
+      document.getElementById('loginScreen').classList.add('show');
+    }
+  });
+}
+
+async function loadData() {
+  setSyncState('loading');
+  const userDoc = doc(db, 'users', currentUser.uid);
+  
+  onSnapshot(userDoc, (snap) => {
+    const data = snap.exists() ? snap.data() : {};
+    
+    // Charger la structure multi-années
+    allYearsData = data.allYearsData || {};
+    
+    // Initialiser classe Préparation si elle n'existe pas
+    if (!CLASS_LIST.find(c => c.name === 'Préparation')) {
+      CLASS_LIST.push({ name: 'Préparation', color: '#ffb366' });
+    }
+    
+    // Si aucune année n'existe, créer l'année courante
+    if (Object.keys(allYearsData).length === 0) {
+      currentSchoolYear = getCurrentSchoolYear();
+      allYearsData[currentSchoolYear] = {
+        EDT: { A: {}, B: {}, SUMMER: {} },
+        edtConfig: { A: {}, B: {}, SUMMER: {} },
+        weekData: {},
+        classes: CLASS_LIST
+      };
+      
+      // Initialiser EDT SUMMER
+      SLOTS.forEach(slot => {
+        allYearsData[currentSchoolYear].EDT.SUMMER[slot] = ['Préparation', 'Préparation', 'Préparation', 'Préparation', 'Préparation'];
+      });
+    }
+    
+    // Charger les slots et classes globaux (partagés entre années)
+    SLOTS = data.SLOTS || SLOTS;
+    CLASS_LIST = data.CLASS_LIST || CLASS_LIST;
+    
+    setSyncState('ok');
+  }, (err) => {
+    console.error(err);
+    setSyncState('err');
+  });
+}
+
+async function save() {
+  if (!currentUser) return;
+  setSyncState('loading');
+  
+  // Sauvegarder l'état actuel dans allYearsData
+  allYearsData[currentSchoolYear] = {
+    EDT,
+    edtConfig,
+    weekData,
+    classes: CLASS_LIST
+  };
+  
+  try {
+    const userDoc = doc(db, 'users', currentUser.uid);
+    await setDoc(userDoc, {
+      allYearsData,
+      SLOTS,
+      CLASS_LIST
+    });
+    setSyncState('ok');
+  } catch (err) {
+    console.error(err);
+    setSyncState('err');
+  }
+}
+
+// ── RENDER WEEK ───────────────────────────────────────────────────────────────
+function renderWeek() {
+  const grid = document.getElementById('weekGrid');
+  const weekType = getWeekType(currentMonday);
+  const isSummer = weekType === 'SUMMER';
+  
+  // Mettre à jour l'interface
+  document.getElementById('summerBadge').style.display = isSummer ? 'block' : 'none';
+  document.getElementById('weekType').textContent = isSummer ? '☀️ Préparations' : `Semaine ${weekType}`;
+  document.getElementById('weekType').className = `week-type ${weekType === 'A' ? 'A' : weekType === 'B' ? 'B' : 'summer'}`;
+  
+  const days = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi'];
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  let html = '<div class="grid-header"></div>';
+  
+  for (let d = 0; d < 5; d++) {
+    const dayDate = new Date(currentMonday);
+    dayDate.setDate(dayDate.getDate() + d);
+    const isToday = dayDate.getTime() === today.getTime();
+    const dayNum = dayDate.getDate();
+    
+    html += `<div class="grid-header day-header ${isToday ? 'is-today' : ''}">
+      <div class="day-name">${days[d]}</div>
+      <div class="day-num">${dayNum}</div>
+    </div>`;
+  }
+  
+  SLOTS.forEach((slot, si) => {
+    const edtRow = EDT[weekType] && EDT[weekType][slot] ? EDT[weekType][slot] : [null, null, null, null, null];
+    
+    // Déterminer si c'est le dernier slot du matin (pour la pause méridienne)
+    const isLastMorning = slot.startsWith('M') && (!SLOTS[si + 1] || SLOTS[si + 1].startsWith('S'));
+    const labelSepCls = isLastMorning ? ' last-morning' : '';
+    
+    html += `<div class="slot-label${labelSepCls}">
+      <div class="slot-class">${esc(slot)}</div>
+    </div>`;
+    
+    for (let d = 0; d < 5; d++) {
+      const cellKey = `${si}-${d}`;
+      const isNoCours = edtConfig[weekType] && edtConfig[weekType][cellKey];
+      const courseName = edtRow[d];
+      
+      const dayDate = new Date(currentMonday);
+      dayDate.setDate(dayDate.getDate() + d);
+      const dateKey = formatDate(dayDate);
+      
+      const cellData = weekData[currentWeekKey] && weekData[currentWeekKey].cells && weekData[currentWeekKey].cells[cellKey] || { tasks: [] };
+      const dayNote = weekData[currentWeekKey] && weekData[currentWeekKey].dayNotes && weekData[currentWeekKey].dayNotes[dateKey] || '';
+      
+      // Calculer les couleurs si cours
+      const classObj = courseName ? CLASS_LIST.find(c => c.name === courseName) : null;
+      const bgColor = classObj ? classObj.color : 'var(--paper)';
+      const borderColor = classObj ? darken(classObj.color, 0.25) : 'var(--border)';
+      const textColor = classObj ? darken(classObj.color, 0.55) : 'var(--text2)';
+      
+      const cellStyle = classObj ? `style="background:${bgColor};border-top:3px solid ${borderColor}"` : '';
+      const cellSepCls = isLastMorning ? ' last-morning' : '';
+      
+      html += `<div class="cell ${isNoCours ? 'no-cours' : ''}${cellSepCls}" ${cellStyle} onclick="onCellClick(event, ${si}, ${d})">`;
+      
+      if (!isNoCours && courseName) {
+        html += `<span class="cell-course-label" style="color:${textColor}">${esc(courseName)}</span>`;
+      }
+      
+      if (!isNoCours) {
+        cellData.tasks.forEach(task => {
+          const taskClassObj = CLASS_LIST.find(c => c.name === task.class);
+          const taskColor = taskClassObj ? taskClassObj.color : '#e0e0e0';
+          html += `<div class="task-item ${task.done ? 'done' : ''}" data-task-id="${task.id}">
+            <div class="task-header">
+              <div class="task-check ${task.done ? 'done' : ''}" onclick="event.stopPropagation();toggleTask('${cellKey}','${task.id}')"></div>
+              <div class="task-content">
+                <div class="task-text">${esc(task.text)}</div>
+                <div class="task-meta">
+                  <span class="task-class" style="background:${taskColor}">${esc(task.class)}</span>
+                  <span class="task-date">→ ${formatDateShort(task.date)}</span>
+                </div>
+              </div>
+            </div>
+            <button class="task-delete" onclick="event.stopPropagation();deleteTask('${cellKey}','${task.id}')">×</button>
+          </div>`;
+        });
+        
+        // Day note (seulement sur la première ligne)
+        if (si === 0) {
+          html += `<div class="day-note">
+            <input type="text" class="day-note-input" placeholder="Note du jour..." 
+              value="${esc(dayNote)}" 
+              onchange="saveDayNote('${dateKey}', this.value)"
+              onclick="event.stopPropagation()">
+          </div>`;
+        }
+      }
+      
+      html += '</div>';
+    }
+  });
+  
+  grid.innerHTML = html;
+  
+  // Update week notes
+  const weekNotes = weekData[currentWeekKey] && weekData[currentWeekKey].notes || '';
+  document.getElementById('weekNotes').value = weekNotes;
+  
+  // Update dates display
+  const endDate = new Date(currentMonday);
+  endDate.setDate(endDate.getDate() + 4);
+  document.getElementById('weekDates').textContent = 
+    `${currentMonday.getDate()}/${currentMonday.getMonth() + 1} - ${endDate.getDate()}/${endDate.getMonth() + 1}`;
+}
+
+// ── NAVIGATION ────────────────────────────────────────────────────────────────
+window.changeWeek = function(delta) {
+  currentMonday.setDate(currentMonday.getDate() + delta * 7);
+  currentWeekKey = formatDate(currentMonday);
+  renderWeek();
+};
+
+window.goToToday = function() {
+  const today = new Date();
+  const dayOfWeek = today.getDay();
+  const diff = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+  currentMonday = new Date(today);
+  currentMonday.setDate(today.getDate() + diff);
+  currentMonday.setHours(0, 0, 0, 0);
+  currentWeekKey = formatDate(currentMonday);
+  
+  // S'assurer qu'on est sur la bonne année
+  const todayYear = getCurrentSchoolYear();
+  if (todayYear !== currentSchoolYear) {
+    document.getElementById('yearSelect').value = todayYear;
+    changeYear();
+  } else {
+    renderWeek();
+  }
+};
+
+window.saveWeekNotes = function() {
+  const val = document.getElementById('weekNotes').value;
+  if (!weekData[currentWeekKey]) weekData[currentWeekKey] = { notes: '', cells: {}, dayNotes: {} };
+  weekData[currentWeekKey].notes = val;
+  save();
+};
+
+// ── TASKS ─────────────────────────────────────────────────────────────────────
+let currentCell = null;
+
+window.onCellClick = function(event, slotIdx, dayIdx) {
+  const cellKey = `${slotIdx}-${dayIdx}`;
+  const weekType = getWeekType(currentMonday);
+  
+  if (configMode) {
+    edtConfig[weekType][cellKey] = !edtConfig[weekType][cellKey];
+    save();
+    renderWeek();
+    return;
+  }
+  
+  if (!edtConfig[weekType][cellKey]) {
+    openAddModal(slotIdx, dayIdx);
+  }
+};
+
+function openAddModal(slotIdx, dayIdx) {
+  currentCell = `${slotIdx}-${dayIdx}`;
+  const modal = document.getElementById('addModal');
+  
+  // Populate class selector
+  const select = document.getElementById('taskClass');
+  select.innerHTML = CLASS_LIST.map(c => `<option value="${esc(c.name)}">${esc(c.name)}</option>`).join('');
+  
+  // Set default date
+  const cellDate = new Date(currentMonday);
+  cellDate.setDate(cellDate.getDate() + dayIdx);
+  cellDate.setDate(cellDate.getDate() + 7);
+  document.getElementById('taskDate').value = formatDate(cellDate);
+  
+  document.getElementById('taskText').value = '';
+  modal.classList.add('show');
+}
+
+window.closeModal = function() {
+  document.getElementById('addModal').classList.remove('show');
+};
+
+window.addTask = function() {
+  const taskClass = document.getElementById('taskClass').value;
+  const text = document.getElementById('taskText').value.trim();
+  const date = document.getElementById('taskDate').value;
+  
+  if (!text) {
+    toast('Le texte ne peut pas être vide');
+    return;
+  }
+  
+  if (!weekData[currentWeekKey]) weekData[currentWeekKey] = { notes: '', cells: {}, dayNotes: {} };
+  if (!weekData[currentWeekKey].cells) weekData[currentWeekKey].cells = {};
+  if (!weekData[currentWeekKey].cells[currentCell]) weekData[currentWeekKey].cells[currentCell] = { tasks: [] };
+  
+  weekData[currentWeekKey].cells[currentCell].tasks.push({
+    id: uid(),
+    class: taskClass,
+    text,
+    date,
+    done: false
+  });
+  
+  save();
+  renderWeek();
+  closeModal();
+  toast('Devoir ajouté ✓');
+};
+
+window.toggleTask = function(cellKey, taskId) {
+  if (!weekData[currentWeekKey] || !weekData[currentWeekKey].cells || !weekData[currentWeekKey].cells[cellKey]) return;
+  const task = weekData[currentWeekKey].cells[cellKey].tasks.find(t => t.id === taskId);
+  if (task) {
+    task.done = !task.done;
+    save();
+    renderWeek();
+  }
+};
+
+window.deleteTask = function(cellKey, taskId) {
+  if (!confirm('Supprimer ce devoir ?')) return;
+  if (!weekData[currentWeekKey] || !weekData[currentWeekKey].cells || !weekData[currentWeekKey].cells[cellKey]) return;
+  weekData[currentWeekKey].cells[cellKey].tasks = weekData[currentWeekKey].cells[cellKey].tasks.filter(t => t.id !== taskId);
+  save();
+  renderWeek();
+  toast('Devoir supprimé');
+};
+
+// ── LOGIN ─────────────────────────────────────────────────────────────────────
+window.doLogin = async function() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const pwd = document.getElementById('loginPassword').value;
+  const btn = event.target;
+  const errEl = document.getElementById('loginError');
+  
+  errEl.classList.remove('show');
+  btn.disabled = true;
+  btn.textContent = 'Connexion...';
+  
+  try {
+    await signInWithEmailAndPassword(auth, email, pwd);
+  } catch(e) {
+    const msgs = {
+      'auth/invalid-credential': 'Email ou mot de passe incorrect',
+      'auth/invalid-email': 'Email invalide',
+      'auth/too-many-requests': 'Trop de tentatives, réessayez plus tard',
+      'auth/network-request-failed': 'Pas de connexion réseau',
+    };
+    errEl.textContent = msgs[e.code] || ('Erreur : ' + e.code);
+    errEl.classList.add('show');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Se connecter';
+  }
+};
+
+window.toggleConfigMode = function() {
+  configMode = !configMode;
+  document.getElementById('weekGrid').classList.toggle('config-mode', configMode);
+  document.getElementById('configModeBar').classList.toggle('show', configMode);
+  document.getElementById('configModeBtn').style.background = configMode ? 'var(--accent)' : '';
+  document.getElementById('configModeBtn').style.color = configMode ? 'white' : '';
+};
+
+window.saveDayNote = function(dateKey, value) {
+  if (!weekData[currentWeekKey]) weekData[currentWeekKey] = { notes: '', cells: {}, dayNotes: {} };
+  if (!weekData[currentWeekKey].dayNotes) weekData[currentWeekKey].dayNotes = {};
+  weekData[currentWeekKey].dayNotes[dateKey] = value;
+  save();
+};
+
+window.doLogout = async function() {
+  if (auth) await signOut(auth);
+};
+
+// ── SETTINGS ──────────────────────────────────────────────────────────────────
+let settingsEDT = null;
+
+window.openSettings = function() {
+  const isSummer = getWeekType(currentMonday) === 'SUMMER';
+  
+  settingsEDT = {
+    slots: [...SLOTS],
+    classes: CLASS_LIST.map(c => ({...c})),
+    A: {}, B: {}, SUMMER: {}
+  };
+  
+  SLOTS.forEach(s => {
+    settingsEDT.A[s] = Array.isArray(EDT.A && EDT.A[s]) ? [...EDT.A[s]] : [null,null,null,null,null];
+    settingsEDT.B[s] = Array.isArray(EDT.B && EDT.B[s]) ? [...EDT.B[s]] : [null,null,null,null,null];
+    settingsEDT.SUMMER[s] = Array.isArray(EDT.SUMMER && EDT.SUMMER[s]) ? [...EDT.SUMMER[s]] : [null,null,null,null,null];
+    
+    while (settingsEDT.A[s].length < 5) settingsEDT.A[s].push(null);
+    while (settingsEDT.B[s].length < 5) settingsEDT.B[s].push(null);
+    while (settingsEDT.SUMMER[s].length < 5) settingsEDT.SUMMER[s].push(null);
+  });
+  
+  renderSettingsClasses();
+  renderSettingsTabs(isSummer);
+  renderSettingsSlots();
+  document.getElementById('settingsScreen').classList.add('show');
+};
+
+function renderSettingsTabs(isSummer) {
+  const tabsContainer = document.getElementById('edtTabs');
+  const editorContainer = document.getElementById('edtEditorContainer');
+  const infoDiv = document.getElementById('edtInfo');
+  
+  if (isSummer) {
+    infoDiv.innerHTML = '☀️ <strong>Mode Préparations</strong> : Vous êtes en juillet-août. Configurez votre emploi du temps de préparations (pas de semaines A/B).';
+    tabsContainer.innerHTML = `<button class="tab-btn active" onclick="switchEdtTab('SUMMER')">Emploi du temps Été</button>`;
+    editorContainer.innerHTML = `<div id="edtEditorSUMMER"></div>`;
+    renderSettingsEDT('SUMMER');
+  } else {
+    infoDiv.innerHTML = `📅 <strong>Année scolaire ${currentSchoolYear}</strong> : Configurez vos semaines A et B.`;
+    tabsContainer.innerHTML = `
+      <button class="tab-btn active" onclick="switchEdtTab('A')">Semaine A</button>
+      <button class="tab-btn" onclick="switchEdtTab('B')">Semaine B</button>
+    `;
+    editorContainer.innerHTML = `
+      <div id="edtEditorA"></div>
+      <div id="edtEditorB" style="display:none"></div>
+    `;
+    renderSettingsEDT('A');
+    renderSettingsEDT('B');
+  }
+}
+
+window.switchEdtTab = function(week) {
+  ['A', 'B', 'SUMMER'].forEach(w => {
+    const editor = document.getElementById('edtEditor' + w);
+    if (editor) editor.style.display = (w === week) ? 'block' : 'none';
+  });
+  
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.classList.remove('active');
+  });
+  event.target.classList.add('active');
+};
+
+window.closeSettings = function() {
+  document.getElementById('settingsScreen').classList.remove('show');
+};
+
+window.saveSettings = function() {
+  SLOTS = settingsEDT.slots;
+  EDT.A = {}; EDT.B = {}; EDT.SUMMER = {};
+  
+  SLOTS.forEach(s => {
+    EDT.A[s] = (settingsEDT.A[s] || [null,null,null,null,null]).map(v => v || null);
+    EDT.B[s] = (settingsEDT.B[s] || [null,null,null,null,null]).map(v => v || null);
+    EDT.SUMMER[s] = (settingsEDT.SUMMER[s] || [null,null,null,null,null]).map(v => v || null);
+  });
+  
+  CLASS_LIST = settingsEDT.classes;
+  
+  closeSettings();
+  save();
+  renderWeek();
+  toast('EDT enregistré ✓');
+};
+
+function renderSettingsClasses() {
+  const el = document.getElementById('classesEditor');
+  el.innerHTML = settingsEDT.classes.map((c, i) => `
+    <div class="class-row">
+      <div class="class-swatch" style="background:${c.color}"></div>
+      <span class="class-name-badge">${esc(c.name)}</span>
+      <input type="color" value="${c.color}" onchange="settingsEDT.classes[${i}].color=this.value;renderSettingsEDT('A');renderSettingsEDT('B');renderSettingsEDT('SUMMER')"
+        style="width:36px;height:28px;border:1.5px solid var(--border2);border-radius:6px;padding:2px;cursor:pointer">
+      <button class="del-btn" onclick="delClass(${i})">✕</button>
+    </div>`).join('');
+}
+
+window.addClass = function() {
+  const name = document.getElementById('newClassName').value.trim();
+  const color = document.getElementById('newClassColor').value;
+  if (!name) return;
+  if (settingsEDT.classes.find(c => c.name === name)) {
+    toast('Classe déjà existante');
+    return;
+  }
+  settingsEDT.classes.push({ name, color });
+  document.getElementById('newClassName').value = '';
+  renderSettingsClasses();
+  renderSettingsEDT('A');
+  renderSettingsEDT('B');
+  renderSettingsEDT('SUMMER');
+};
+
+window.delClass = function(i) {
+  const name = settingsEDT.classes[i].name;
+  if (name === 'Préparation') {
+    toast('Impossible de supprimer la classe Préparation');
+    return;
+  }
+  if (!confirm(`Supprimer la classe "${name}" ?`)) return;
+  settingsEDT.classes.splice(i, 1);
+  settingsEDT.slots.forEach(s => {
+    ['A','B','SUMMER'].forEach(w => {
+      settingsEDT[w][s] = settingsEDT[w][s].map(v => v === name ? null : v);
+    });
+  });
+  renderSettingsClasses();
+  renderSettingsEDT('A');
+  renderSettingsEDT('B');
+  renderSettingsEDT('SUMMER');
+};
+
+function renderSettingsEDT(week) {
+  const el = document.getElementById('edtEditor' + week);
+  if (!el) return;
+  
+  const classes = settingsEDT.classes;
+  const slots = settingsEDT.slots;
+  const days = ['Lun','Mar','Mer','Jeu','Ven'];
+
+  let html = `<table class="settings-table"><thead><tr>
+    <th>Créneau</th>${days.map(d => `<th>${d}</th>`).join('')}
+  </tr></thead><tbody>`;
+
+  slots.forEach((slot, si) => {
+    if (!settingsEDT[week][slot]) settingsEDT[week][slot] = [null,null,null,null,null];
+    html += `<tr><td style="font-weight:700;font-size:0.85rem;color:var(--text2);padding:4px 8px">${esc(slot)}</td>`;
+    for (let d = 0; d < 5; d++) {
+      const val = settingsEDT[week][slot][d] || '';
+      const bgColor = val ? (classes.find(c=>c.name===val)?.color || 'white') : 'white';
+      html += `<td>
+        <select data-week="${week}" data-slot="${si}" data-day="${d}"
+          style="background:${bgColor}">
+          <option value="">—</option>
+          ${classes.map(c => `<option value="${esc(c.name)}" ${val===c.name?'selected':''}>${esc(c.name)}</option>`).join('')}
+        </select>
+      </td>`;
+    }
+    html += '</tr>';
+  });
+
+  html += '</tbody></table>';
+  el.innerHTML = html;
+
+  el.querySelectorAll('select').forEach(sel => {
+    sel.addEventListener('change', function() {
+      const w = this.dataset.week;
+      const si = parseInt(this.dataset.slot);
+      const d = parseInt(this.dataset.day);
+      const slot = settingsEDT.slots[si];
+      if (!settingsEDT[w][slot]) settingsEDT[w][slot] = [null,null,null,null,null];
+      settingsEDT[w][slot][d] = this.value || null;
+      const color = this.value ? (settingsEDT.classes.find(c=>c.name===this.value)?.color || 'white') : 'white';
+      this.style.background = color;
+      this.parentElement.style.background = color;
+    });
+  });
+}
+
+function renderSettingsSlots() {
+  const el = document.getElementById('slotsEditor');
+  el.innerHTML = settingsEDT.slots.map((s, i) => `
+    <div class="slot-row">
+      <input type="text" value="${esc(s)}" onchange="settingsEDT.slots[${i}]=this.value;renderSettingsEDT('A');renderSettingsEDT('B');renderSettingsEDT('SUMMER')" placeholder="ex: M1">
+      <span style="font-size:0.78rem;color:var(--text3)">(nom du créneau)</span>
+      <button class="del-btn" onclick="delSlot(${i})">✕</button>
+    </div>`).join('');
+}
+
+window.addSlot = function() {
+  const name = `S${settingsEDT.slots.length - 3}`;
+  settingsEDT.slots.push(name);
+  settingsEDT.A[name] = [null,null,null,null,null];
+  settingsEDT.B[name] = [null,null,null,null,null];
+  settingsEDT.SUMMER[name] = [null,null,null,null,null];
+  renderSettingsSlots();
+  renderSettingsEDT('A');
+  renderSettingsEDT('B');
+  renderSettingsEDT('SUMMER');
+};
+
+window.delSlot = function(i) {
+  const name = settingsEDT.slots[i];
+  if (!confirm(`Supprimer le créneau "${name}" ?`)) return;
+  settingsEDT.slots.splice(i, 1);
+  delete settingsEDT.A[name];
+  delete settingsEDT.B[name];
+  delete settingsEDT.SUMMER[name];
+  renderSettingsSlots();
+  renderSettingsEDT('A');
+  renderSettingsEDT('B');
+  renderSettingsEDT('SUMMER');
+};
+
+window.resetEdtConfig = async function() {
+  if (!confirm('Réinitialiser toutes les cases grisées ? Cela ne supprime pas votre EDT.')) return;
+  edtConfig = { A: {}, B: {}, SUMMER: {} };
+  await save();
+  renderWeek();
+  toast('Cases réinitialisées ✓');
+};
+
+window.repairEDT = function() {
+  ['A','B','SUMMER'].forEach(w => {
+    const table = document.getElementById('edtEditor' + w);
+    if (!table) return;
+    table.querySelectorAll('select').forEach(sel => {
+      const si = parseInt(sel.dataset.slot);
+      const d = parseInt(sel.dataset.day);
+      const slot = settingsEDT.slots[si];
+      if (!slot) return;
+      if (!settingsEDT[w][slot]) settingsEDT[w][slot] = [null,null,null,null,null];
+      settingsEDT[w][slot][d] = sel.value || null;
+    });
+  });
+  saveSettings();
+  toast('EDT réparé et sauvegardé ✓');
+};
+
+// ── HELPERS ───────────────────────────────────────────────────────────────────
+function setSyncState(s) {
+  document.getElementById('syncDot').className = 'sync-dot ' + s;
+}
+
+function uid() {
+  return Math.random().toString(36).slice(2,10);
+}
+
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function toast(msg, dur=2200) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.classList.remove('show'), dur);
+}
+
+function formatDate(d) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+function formatDateShort(dateStr) {
+  const d = new Date(dateStr);
+  return `${d.getDate()}/${d.getMonth() + 1}`;
+}
+
+function darken(hex, amount) {
+  const r = parseInt(hex.slice(1,3),16);
+  const g = parseInt(hex.slice(3,5),16);
+  const b = parseInt(hex.slice(5,7),16);
+  const d = v => Math.max(0, Math.round(v * (1 - amount)));
+  return `rgb(${d(r)},${d(g)},${d(b)})`;
+}
+
+document.getElementById('addModal').addEventListener('click', e => {
+  if(e.target.id==='addModal') closeModal();
+});
+
+bootApp();
+</script>
+</body>
+</html>
