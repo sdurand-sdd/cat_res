@@ -1103,8 +1103,12 @@ window.changeYear = function() {
 };
 
 function loadYearData() {
+  console.log('🔄 loadYearData appelé pour année:', currentSchoolYear);
+  console.log('allYearsData disponible:', allYearsData);
+  
   // Charger les données de l'année courante depuis allYearsData
   if (!allYearsData[currentSchoolYear]) {
+    console.log('⚠️ Année inexistante, création d\'une structure vide');
     // Créer structure vide pour nouvelle année
     allYearsData[currentSchoolYear] = {
       EDT: { A: {}, B: {}, SUMMER: {} },
@@ -1126,6 +1130,11 @@ function loadYearData() {
   weekData = yearData.weekData;
   CLASS_LIST = yearData.classes || CLASS_LIST;
   
+  console.log('✅ Données chargées pour l\'année:', currentSchoolYear);
+  console.log('EDT.A:', EDT.A);
+  console.log('EDT.B:', EDT.B);
+  console.log('CLASS_LIST:', CLASS_LIST);
+  
   // Sauvegarder automatiquement
   save();
 }
@@ -1139,7 +1148,7 @@ async function bootApp() {
       currentUser = user;
       document.getElementById('loginScreen').classList.remove('show');
       await loadData();
-      loadYearData();
+      // loadYearData() est maintenant appelé automatiquement dans loadData après réception des données
       goToToday();
     } else {
       document.getElementById('loginScreen').classList.add('show');
@@ -1154,6 +1163,8 @@ async function loadData() {
   onSnapshot(userDoc, (snap) => {
     const data = snap.exists() ? snap.data() : {};
     
+    console.log('📥 Données reçues de Firebase:', data);
+    
     // Charger les slots et classes globaux (partagés entre années)
     SLOTS = data.SLOTS || SLOTS;
     CLASS_LIST = data.CLASS_LIST || CLASS_LIST;
@@ -1165,6 +1176,8 @@ async function loadData() {
     
     // Charger la structure multi-années
     allYearsData = data.allYearsData || {};
+    
+    console.log('📦 allYearsData après chargement:', allYearsData);
     
     // Si aucune année n'existe, créer l'année courante
     if (Object.keys(allYearsData).length === 0) {
@@ -1181,6 +1194,9 @@ async function loadData() {
         allYearsData[currentSchoolYear].EDT.SUMMER[slot] = ['Préparation', 'Préparation', 'Préparation', 'Préparation', 'Préparation'];
       });
     }
+    
+    // IMPORTANT: Charger les données de l'année courante APRÈS avoir reçu allYearsData
+    loadYearData();
     
     setSyncState('ok');
   }, (err) => {
