@@ -438,6 +438,25 @@ body {
 }
 .day-note-input::placeholder { color: var(--text3); }
 
+.day-note-cell {
+  background: var(--yellow);
+  min-height: 60px;
+}
+
+.day-note-textarea {
+  width: 100%;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-family: inherit;
+  font-size: 0.75rem;
+  font-style: italic;
+  color: var(--text2);
+  resize: none;
+  padding: 4px;
+}
+.day-note-textarea::placeholder { color: var(--text3); }
+
 /* ── MODALS ── */
 .modal {
   display: none;
@@ -1182,6 +1201,12 @@ async function save() {
     classes: CLASS_LIST
   };
   
+  console.log('=== SAVE vers Firebase ===');
+  console.log('currentSchoolYear:', currentSchoolYear);
+  console.log('allYearsData:', JSON.stringify(allYearsData, null, 2));
+  console.log('SLOTS:', SLOTS);
+  console.log('CLASS_LIST:', CLASS_LIST);
+  
   try {
     const userDoc = doc(db, 'users', currentUser.uid);
     await setDoc(userDoc, {
@@ -1189,9 +1214,10 @@ async function save() {
       SLOTS,
       CLASS_LIST
     });
+    console.log('✅ Sauvegarde Firebase réussie');
     setSyncState('ok');
   } catch (err) {
-    console.error(err);
+    console.error('❌ Erreur sauvegarde Firebase:', err);
     setSyncState('err');
   }
 }
@@ -1246,7 +1272,6 @@ function renderWeek() {
       const dateKey = formatDate(dayDate);
       
       const cellData = weekData[currentWeekKey] && weekData[currentWeekKey].cells && weekData[currentWeekKey].cells[cellKey] || { tasks: [] };
-      const dayNote = weekData[currentWeekKey] && weekData[currentWeekKey].dayNotes && weekData[currentWeekKey].dayNotes[dateKey] || '';
       
       // Calculer les couleurs si cours
       const classObj = courseName ? CLASS_LIST.find(c => c.name === courseName) : null;
@@ -1281,21 +1306,27 @@ function renderWeek() {
             <button class="task-delete" onclick="event.stopPropagation();deleteTask('${cellKey}','${task.id}')">×</button>
           </div>`;
         });
-        
-        // Day note (seulement sur la première ligne)
-        if (si === 0) {
-          html += `<div class="day-note">
-            <input type="text" class="day-note-input" placeholder="Note du jour..." 
-              value="${esc(dayNote)}" 
-              onchange="saveDayNote('${dateKey}', this.value)"
-              onclick="event.stopPropagation()">
-          </div>`;
-        }
       }
       
       html += '</div>';
     }
   });
+  
+  // Notes du jour - ligne séparée en bas
+  const dayNotes = weekData[currentWeekKey] && weekData[currentWeekKey].dayNotes || {};
+  html += `<div class="slot-label">📝 Notes du jour</div>`;
+  for (let d = 0; d < 5; d++) {
+    const dayDate = new Date(currentMonday);
+    dayDate.setDate(dayDate.getDate() + d);
+    const dateKey = formatDate(dayDate);
+    const noteVal = dayNotes[dateKey] || '';
+    
+    html += `<div class="cell day-note-cell">
+      <textarea class="day-note-textarea" rows="2" placeholder="Notes…"
+        onchange="saveDayNote('${dateKey}', this.value)"
+        onclick="event.stopPropagation()">${esc(noteVal)}</textarea>
+    </div>`;
+  }
   
   grid.innerHTML = html;
   
@@ -1550,6 +1581,12 @@ window.closeSettings = function() {
 };
 
 window.saveSettings = function() {
+  console.log('=== DEBUT saveSettings ===');
+  console.log('settingsEDT.slots:', settingsEDT.slots);
+  console.log('settingsEDT.A:', settingsEDT.A);
+  console.log('settingsEDT.B:', settingsEDT.B);
+  console.log('settingsEDT.SUMMER:', settingsEDT.SUMMER);
+  
   SLOTS = settingsEDT.slots;
   EDT.A = {}; EDT.B = {}; EDT.SUMMER = {};
   
@@ -1561,14 +1598,21 @@ window.saveSettings = function() {
   
   CLASS_LIST = settingsEDT.classes;
   
+  console.log('Après copie - EDT.A:', EDT.A);
+  console.log('Après copie - EDT.B:', EDT.B);
+  console.log('Après copie - CLASS_LIST:', CLASS_LIST);
+  
   // Mettre à jour allYearsData avec les nouvelles données
   allYearsData[currentSchoolYear].EDT = EDT;
   allYearsData[currentSchoolYear].classes = CLASS_LIST;
+  
+  console.log('allYearsData après update:', allYearsData);
   
   closeSettings();
   save();
   renderWeek();
   toast('EDT enregistré ✓');
+  console.log('=== FIN saveSettings ===');
 };
 
 function renderSettingsClasses() {
