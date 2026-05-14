@@ -1098,7 +1098,7 @@ window.changeYear = function() {
   if (newYear !== currentSchoolYear) {
     currentSchoolYear = newYear;
     loadYearData();
-    goToToday();
+    renderWeek();
   }
 };
 
@@ -1147,9 +1147,18 @@ async function bootApp() {
     if (user) {
       currentUser = user;
       document.getElementById('loginScreen').classList.remove('show');
+      
+      // Initialiser currentMonday et currentWeekKey AVANT de charger les données
+      const today = new Date();
+      const dayOfWeek = today.getDay();
+      const diff = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+      currentMonday = new Date(today);
+      currentMonday.setDate(today.getDate() + diff);
+      currentMonday.setHours(0, 0, 0, 0);
+      currentWeekKey = formatDate(currentMonday);
+      
       await loadData();
-      // loadYearData() est maintenant appelé automatiquement dans loadData après réception des données
-      goToToday();
+      // loadYearData() et renderWeek() sont maintenant appelés automatiquement dans loadData
     } else {
       document.getElementById('loginScreen').classList.add('show');
     }
@@ -1197,6 +1206,9 @@ async function loadData() {
     
     // IMPORTANT: Charger les données de l'année courante APRÈS avoir reçu allYearsData
     loadYearData();
+    
+    // Afficher l'EDT
+    renderWeek();
     
     setSyncState('ok');
   }, (err) => {
