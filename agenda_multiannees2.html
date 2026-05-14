@@ -1135,13 +1135,17 @@ async function loadData() {
   onSnapshot(userDoc, (snap) => {
     const data = snap.exists() ? snap.data() : {};
     
-    // Charger la structure multi-années
-    allYearsData = data.allYearsData || {};
+    // Charger les slots et classes globaux (partagés entre années)
+    SLOTS = data.SLOTS || SLOTS;
+    CLASS_LIST = data.CLASS_LIST || CLASS_LIST;
     
     // Initialiser classe Préparation si elle n'existe pas
     if (!CLASS_LIST.find(c => c.name === 'Préparation')) {
       CLASS_LIST.push({ name: 'Préparation', color: '#ffb366' });
     }
+    
+    // Charger la structure multi-années
+    allYearsData = data.allYearsData || {};
     
     // Si aucune année n'existe, créer l'année courante
     if (Object.keys(allYearsData).length === 0) {
@@ -1150,7 +1154,7 @@ async function loadData() {
         EDT: { A: {}, B: {}, SUMMER: {} },
         edtConfig: { A: {}, B: {}, SUMMER: {} },
         weekData: {},
-        classes: CLASS_LIST
+        classes: [...CLASS_LIST]
       };
       
       // Initialiser EDT SUMMER
@@ -1158,10 +1162,6 @@ async function loadData() {
         allYearsData[currentSchoolYear].EDT.SUMMER[slot] = ['Préparation', 'Préparation', 'Préparation', 'Préparation', 'Préparation'];
       });
     }
-    
-    // Charger les slots et classes globaux (partagés entre années)
-    SLOTS = data.SLOTS || SLOTS;
-    CLASS_LIST = data.CLASS_LIST || CLASS_LIST;
     
     setSyncState('ok');
   }, (err) => {
@@ -1480,6 +1480,7 @@ window.doLogout = async function() {
 
 // ── SETTINGS ──────────────────────────────────────────────────────────────────
 let settingsEDT = null;
+window.settingsEDT = settingsEDT;
 
 window.openSettings = function() {
   const isSummer = getWeekType(currentMonday) === 'SUMMER';
@@ -1489,6 +1490,7 @@ window.openSettings = function() {
     classes: CLASS_LIST.map(c => ({...c})),
     A: {}, B: {}, SUMMER: {}
   };
+  window.settingsEDT = settingsEDT;
   
   SLOTS.forEach(s => {
     settingsEDT.A[s] = Array.isArray(EDT.A && EDT.A[s]) ? [...EDT.A[s]] : [null,null,null,null,null];
@@ -1558,6 +1560,10 @@ window.saveSettings = function() {
   });
   
   CLASS_LIST = settingsEDT.classes;
+  
+  // Mettre à jour allYearsData avec les nouvelles données
+  allYearsData[currentSchoolYear].EDT = EDT;
+  allYearsData[currentSchoolYear].classes = CLASS_LIST;
   
   closeSettings();
   save();
