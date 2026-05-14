@@ -1385,8 +1385,16 @@ function renderWeek() {
       
       if (!isNoCours && cellData.events) {
         cellData.events.forEach(ev => {
+          const icons = {
+            cours: '📘',
+            eval: '📝',
+            reunion: '👥',
+            tache: '✅',
+            note: '💬'
+          };
+          const icon = icons[ev.type] || '';
           html += `<div class="event-tag ${ev.type}">
-            ${esc(ev.text)}
+            ${icon} ${esc(ev.text)}
             <span class="event-tag-del" onclick="event.stopPropagation();deleteEvent('${cellKey}','${ev.id}')">✕</span>
           </div>`;
         });
