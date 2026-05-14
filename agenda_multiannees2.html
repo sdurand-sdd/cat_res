@@ -344,6 +344,42 @@ body {
 }
 .task-item:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.1); transform: translateY(-1px); }
 
+.event-tag {
+  background: white;
+  border-left: 3px solid var(--border2);
+  border-radius: 4px;
+  padding: 6px 8px;
+  margin: 3px 0;
+  font-size: 0.78rem;
+  position: relative;
+  transition: all 0.15s;
+  word-break: break-word;
+  line-height: 1.3;
+}
+.event-tag:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.1); transform: translateY(-1px); }
+
+.event-tag.cours    { background: var(--blue);   border-left-color: var(--blue-b);   color: #2a5580; }
+.event-tag.eval     { background: var(--pink);   border-left-color: var(--pink-b);   color: #7a2048; }
+.event-tag.reunion  { background: var(--purple); border-left-color: var(--purple-b); color: #4a2d80; }
+.event-tag.tache    { background: var(--green);  border-left-color: var(--green-b);  color: #2a6040; }
+.event-tag.note     { background: var(--yellow); border-left-color: var(--yellow-b); color: #6b5000; }
+
+.event-tag-del {
+  position: absolute;
+  right: 4px;
+  top: 4px;
+  background: none;
+  border: none;
+  color: currentColor;
+  opacity: 0;
+  cursor: pointer;
+  font-size: 0.9rem;
+  padding: 2px 4px;
+  transition: opacity 0.15s;
+}
+.event-tag:hover .event-tag-del { opacity: 0.6; }
+.event-tag-del:hover { opacity: 1 !important; }
+
 .task-header {
   display: flex;
   align-items: flex-start;
@@ -472,6 +508,7 @@ body {
   padding: 20px;
 }
 .modal.show { display: flex; }
+.modal.open { display: flex; }
 
 .modal-content {
   background: var(--paper);
@@ -512,6 +549,34 @@ body {
   justify-content: center;
 }
 .close-btn:hover { color: var(--accent); }
+
+.type-selector {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.type-btn {
+  flex: 1;
+  min-width: 90px;
+  padding: 8px 12px;
+  background: var(--bg);
+  border: 2px solid var(--border2);
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  color: var(--text2);
+}
+.type-btn:hover { border-color: var(--text2); color: var(--text); }
+.type-btn.active.cours   { background: var(--blue);   border-color: var(--blue-b);   color: #2a5580; }
+.type-btn.active.eval    { background: var(--pink);   border-color: var(--pink-b);   color: #7a2048; }
+.type-btn.active.reunion { background: var(--purple); border-color: var(--purple-b); color: #4a2d80; }
+.type-btn.active.tache   { background: var(--green);  border-color: var(--green-b);  color: #2a6040; }
+.type-btn.active.note    { background: var(--yellow); border-color: var(--yellow-b); color: #6b5000; }
 
 .form-group {
   margin-bottom: 16px;
@@ -919,23 +984,25 @@ body {
 <div class="modal" id="addModal">
   <div class="modal-content">
     <div class="modal-header">
-      <h2>Ajouter un devoir</h2>
+      <h2 id="modalTitle">Ajouter</h2>
       <button class="close-btn" onclick="closeModal()">×</button>
     </div>
-    <div class="form-group">
-      <label>Classe/Matière</label>
-      <select id="taskClass"></select>
+    
+    <div class="type-selector">
+      <button class="type-btn active" data-type="cours" onclick="selectType('cours')">📘 Cours</button>
+      <button class="type-btn" data-type="eval" onclick="selectType('eval')">📝 Éval</button>
+      <button class="type-btn" data-type="reunion" onclick="selectType('reunion')">👥 Réunion</button>
+      <button class="type-btn" data-type="tache" onclick="selectType('tache')">✅ Tâche</button>
+      <button class="type-btn" data-type="note" onclick="selectType('note')">💬 Note</button>
     </div>
+    
     <div class="form-group">
       <label>Description</label>
-      <textarea id="taskText" placeholder="Ex: Exercices p.42-45"></textarea>
+      <textarea id="eventText" placeholder="Description..." rows="3"></textarea>
     </div>
-    <div class="form-group">
-      <label>Pour le</label>
-      <input type="date" id="taskDate">
-    </div>
+    
     <div class="form-actions">
-      <button class="btn btn-primary" onclick="addTask()">Ajouter</button>
+      <button class="btn btn-primary" onclick="saveEvent()">Ajouter</button>
       <button class="btn btn-secondary" onclick="closeModal()">Annuler</button>
     </div>
   </div>
@@ -1299,7 +1366,7 @@ function renderWeek() {
       dayDate.setDate(dayDate.getDate() + d);
       const dateKey = formatDate(dayDate);
       
-      const cellData = weekData[currentWeekKey] && weekData[currentWeekKey].cells && weekData[currentWeekKey].cells[cellKey] || { tasks: [] };
+      const cellData = weekData[currentWeekKey] && weekData[currentWeekKey].cells && weekData[currentWeekKey].cells[cellKey] || { events: [] };
       
       // Calculer les couleurs si cours
       const classObj = courseName ? CLASS_LIST.find(c => c.name === courseName) : null;
@@ -1316,22 +1383,11 @@ function renderWeek() {
         html += `<span class="cell-course-label" style="color:${textColor}">${esc(courseName)}</span>`;
       }
       
-      if (!isNoCours) {
-        cellData.tasks.forEach(task => {
-          const taskClassObj = CLASS_LIST.find(c => c.name === task.class);
-          const taskColor = taskClassObj ? taskClassObj.color : '#e0e0e0';
-          html += `<div class="task-item ${task.done ? 'done' : ''}" data-task-id="${task.id}">
-            <div class="task-header">
-              <div class="task-check ${task.done ? 'done' : ''}" onclick="event.stopPropagation();toggleTask('${cellKey}','${task.id}')"></div>
-              <div class="task-content">
-                <div class="task-text">${esc(task.text)}</div>
-                <div class="task-meta">
-                  <span class="task-class" style="background:${taskColor}">${esc(task.class)}</span>
-                  <span class="task-date">→ ${formatDateShort(task.date)}</span>
-                </div>
-              </div>
-            </div>
-            <button class="task-delete" onclick="event.stopPropagation();deleteTask('${cellKey}','${task.id}')">×</button>
+      if (!isNoCours && cellData.events) {
+        cellData.events.forEach(ev => {
+          html += `<div class="event-tag ${ev.type}">
+            ${esc(ev.text)}
+            <span class="event-tag-del" onclick="event.stopPropagation();deleteEvent('${cellKey}','${ev.id}')">✕</span>
           </div>`;
         });
       }
@@ -1404,6 +1460,7 @@ window.saveWeekNotes = function() {
 
 // ── TASKS ─────────────────────────────────────────────────────────────────────
 let currentCell = null;
+let selectedType = 'cours';
 
 window.onCellClick = function(event, slotIdx, dayIdx) {
   const cellKey = `${slotIdx}-${dayIdx}`;
@@ -1423,57 +1480,73 @@ window.onCellClick = function(event, slotIdx, dayIdx) {
 
 function openAddModal(slotIdx, dayIdx) {
   currentCell = `${slotIdx}-${dayIdx}`;
+  const weekType = getWeekType(currentMonday);
   const modal = document.getElementById('addModal');
   
-  // Populate class selector
-  const select = document.getElementById('taskClass');
-  select.innerHTML = CLASS_LIST.map(c => `<option value="${esc(c.name)}">${esc(c.name)}</option>`).join('');
+  // Mettre à jour le titre de la modal
+  const dayDate = new Date(currentMonday);
+  dayDate.setDate(dayDate.getDate() + dayIdx);
+  const courseName = EDT[weekType] && EDT[weekType][SLOTS[slotIdx]] ? EDT[weekType][SLOTS[slotIdx]][dayIdx] : SLOTS[slotIdx];
+  const days = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi'];
+  document.getElementById('modalTitle').textContent = 
+    `${courseName || SLOTS[slotIdx]} — ${days[dayIdx]} ${dayDate.getDate()}/${dayDate.getMonth() + 1}`;
   
-  // Set default date
-  const cellDate = new Date(currentMonday);
-  cellDate.setDate(cellDate.getDate() + dayIdx);
-  cellDate.setDate(cellDate.getDate() + 7);
-  document.getElementById('taskDate').value = formatDate(cellDate);
-  
-  document.getElementById('taskText').value = '';
-  modal.classList.add('show');
+  document.getElementById('eventText').value = '';
+  selectType('cours');
+  modal.classList.add('open');
+  setTimeout(() => document.getElementById('eventText').focus(), 100);
 }
 
 window.closeModal = function() {
-  document.getElementById('addModal').classList.remove('show');
+  document.getElementById('addModal').classList.remove('open');
 };
 
-window.addTask = function() {
-  const taskClass = document.getElementById('taskClass').value;
-  const text = document.getElementById('taskText').value.trim();
-  const date = document.getElementById('taskDate').value;
-  
-  if (!text) {
-    toast('Le texte ne peut pas être vide');
-    return;
-  }
+window.selectType = function(type) {
+  selectedType = type;
+  document.querySelectorAll('.type-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.type === type);
+  });
+};
+
+window.saveEvent = function() {
+  const text = document.getElementById('eventText').value.trim();
+  if (!text || !currentCell) return;
   
   if (!weekData[currentWeekKey]) weekData[currentWeekKey] = { notes: '', cells: {}, dayNotes: {} };
   if (!weekData[currentWeekKey].cells) weekData[currentWeekKey].cells = {};
-  if (!weekData[currentWeekKey].cells[currentCell]) weekData[currentWeekKey].cells[currentCell] = { tasks: [] };
+  if (!weekData[currentWeekKey].cells[currentCell]) weekData[currentWeekKey].cells[currentCell] = { events: [] };
   
-  weekData[currentWeekKey].cells[currentCell].tasks.push({
+  weekData[currentWeekKey].cells[currentCell].events.push({
     id: uid(),
-    class: taskClass,
-    text,
-    date,
-    done: false
+    type: selectedType,
+    text
   });
   
   save();
   renderWeek();
   closeModal();
-  toast('Devoir ajouté ✓');
+  toast('Événement ajouté ✓');
 };
 
-window.toggleTask = function(cellKey, taskId) {
+window.deleteEvent = function(cellKey, evId) {
+  if (!confirm('Supprimer cet événement ?')) return;
   if (!weekData[currentWeekKey] || !weekData[currentWeekKey].cells || !weekData[currentWeekKey].cells[cellKey]) return;
-  const task = weekData[currentWeekKey].cells[cellKey].tasks.find(t => t.id === taskId);
+  
+  const cell = weekData[currentWeekKey].cells[cellKey];
+  if (cell.events) {
+    cell.events = cell.events.filter(e => e.id !== evId);
+  }
+  
+  save();
+  renderWeek();
+  toast('Événement supprimé');
+};
+
+// Fonctions anciennes (compatibilité migration si besoin)
+window.toggleTask = function(cellKey, taskId) {
+  // Ancienne fonction pour les devoirs avec checkbox - gardée pour compatibilité
+  if (!weekData[currentWeekKey] || !weekData[currentWeekKey].cells || !weekData[currentWeekKey].cells[cellKey]) return;
+  const task = weekData[currentWeekKey].cells[cellKey].tasks?.find(t => t.id === taskId);
   if (task) {
     task.done = !task.done;
     save();
@@ -1482,12 +1555,8 @@ window.toggleTask = function(cellKey, taskId) {
 };
 
 window.deleteTask = function(cellKey, taskId) {
-  if (!confirm('Supprimer ce devoir ?')) return;
-  if (!weekData[currentWeekKey] || !weekData[currentWeekKey].cells || !weekData[currentWeekKey].cells[cellKey]) return;
-  weekData[currentWeekKey].cells[cellKey].tasks = weekData[currentWeekKey].cells[cellKey].tasks.filter(t => t.id !== taskId);
-  save();
-  renderWeek();
-  toast('Devoir supprimé');
+  // Ancienne fonction pour les devoirs - redirige vers deleteEvent
+  deleteEvent(cellKey, taskId);
 };
 
 // ── LOGIN ─────────────────────────────────────────────────────────────────────
